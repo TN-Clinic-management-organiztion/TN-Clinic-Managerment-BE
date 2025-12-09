@@ -52,7 +52,7 @@ CREATE TABLE patient_profiles (
     medical_history TEXT,
     allergy_history TEXT,
 	  deleted_at TIMESTAMPTZ
-);
+); -- Done
 
 -- BẢNG ĐẶT LỊCH & HÀNG ĐỢI
 CREATE TABLE online_appointments (
@@ -65,8 +65,8 @@ CREATE TABLE online_appointments (
     symptoms TEXT, -- Triệu chứng sơ khai (không bắt buộc)
     status VARCHAR(50) DEFAULT 'CONFIRMED',
     created_at TIMESTAMPTZ DEFAULT NOW(),
-	deleted_at TIMESTAMPTZ
-);
+	  deleted_at TIMESTAMPTZ
+); -- Done
 
 CREATE TABLE queue_counters (
     counter_id SERIAL PRIMARY KEY,
@@ -75,10 +75,7 @@ CREATE TABLE queue_counters (
     last_number INT DEFAULT 0,
     reset_date DATE DEFAULT CURRENT_DATE,
     UNIQUE(room_id, ticket_type, reset_date)
-);
-
--- Index cho mảng service_ids
-CREATE INDEX idx_queue_tickets_service_ids ON queue_tickets USING GIN(service_ids);
+); -- Done
 
 -- BẢNG LƯỢT KHÁM & THEO DÕI
 CREATE TABLE medical_encounters (
@@ -94,8 +91,8 @@ CREATE TABLE medical_encounters (
     initial_symptoms TEXT,
     final_icd_code VARCHAR(10) REFERENCES ref_icd10(icd_code),
     doctor_conclusion TEXT,
-	deleted_at TIMESTAMPTZ
-);
+	  deleted_at TIMESTAMPTZ
+); -- Done
 
 CREATE TABLE queue_tickets (
     ticket_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -108,9 +105,13 @@ CREATE TABLE queue_tickets (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     called_at TIMESTAMPTZ,
     started_at TIMESTAMPTZ,
-	service_ids INT[],
+	  service_ids INT[],
     completed_at TIMESTAMPTZ
-);
+); -- Done
+
+-- Index cho mảng service_ids
+CREATE INDEX idx_queue_tickets_service_ids ON queue_tickets USING GIN(service_ids);
+
 
 -- Lưu ý phải có bảng ref_services
 CREATE TABLE encounter_cls_tracking (
@@ -120,7 +121,7 @@ CREATE TABLE encounter_cls_tracking (
     status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     completed_at TIMESTAMPTZ
-);
+); -- Done
 
 -- BẢNG DỊCH VỤ & KẾT QUẢ
 CREATE TABLE ref_icd10 (
@@ -131,28 +132,28 @@ CREATE TABLE ref_icd10 (
     level INT,
     is_leaf BOOLEAN DEFAULT FALSE,
     active BOOLEAN DEFAULT TRUE
-);
+); -- Done
 
 CREATE TABLE ref_service_categories (
     category_id SERIAL PRIMARY KEY,
     category_name VARCHAR(255) NOT NULL,
     parent_id INT REFERENCES ref_service_categories(category_id),
     is_system_root BOOLEAN DEFAULT FALSE
-);
+); -- Done
 
 CREATE TABLE ref_services (
     service_id SERIAL PRIMARY KEY,
     category_id INT REFERENCES ref_service_categories(category_id),
     service_name VARCHAR(255) NOT NULL,
     base_price DECIMAL(15,2),
-    result_input_type VARCHAR(50)
-);
+    result_input_type VARCHAR(50) CHECK (result_input_type IN ('NUMERIC', 'TEXT', 'NUMERIC_AND_TEXT', 'IMAGE_AND_TEXT'))
+); -- Done
 
 CREATE TABLE room_services (
     room_id INT REFERENCES org_rooms(room_id),
     service_id INT REFERENCES ref_services(service_id),
     PRIMARY KEY (room_id, service_id)
-);
+); -- Done
 
 CREATE TABLE ref_lab_indicators (
     indicator_id SERIAL PRIMARY KEY,
@@ -161,31 +162,31 @@ CREATE TABLE ref_lab_indicators (
     unit VARCHAR(50),
     ref_min_male DECIMAL(10,4), ref_max_male DECIMAL(10,4),
     ref_min_female DECIMAL(10,4), ref_max_female DECIMAL(10,4)
-);
+); -- Done
 
 CREATE TABLE rel_service_indicators (
     service_id INT REFERENCES ref_services(service_id),
     indicator_id INT REFERENCES ref_lab_indicators(indicator_id),
     sort_order INT,
     PRIMARY KEY (service_id, indicator_id)
-);
+); -- Done
 
 CREATE TABLE service_requests (
     request_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     encounter_id UUID REFERENCES medical_encounters(encounter_id),
     requesting_doctor_id UUID REFERENCES staff_profiles(staff_id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    payment_status VARCHAR(50) DEFAULT 'UNPAID',
+    payment_status VARCHAR(50) DEFAULT 'UNPAID' CHECK (payment_status IN ('UNPAID', 'PARTIALLY_PAID', 'PAID', 'CANCELLED')),
     notes TEXT,
-	deleted_at TIMESTAMPTZ
-);
+	  deleted_at TIMESTAMPTZ
+); -- Done
 
 CREATE TABLE service_request_items (
     item_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     request_id UUID REFERENCES service_requests(request_id),
     service_id INT REFERENCES ref_services(service_id),
-    status VARCHAR(50) DEFAULT 'PENDING'
-);
+    status VARCHAR(50) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'))
+); -- Done
 
 CREATE TABLE service_report_templates (
     template_id SERIAL PRIMARY KEY,
@@ -196,7 +197,7 @@ CREATE TABLE service_report_templates (
     is_default BOOLEAN DEFAULT FALSE,
     is_public BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
-);
+); -- Done
 
 CREATE TABLE service_results (
     result_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -208,8 +209,8 @@ CREATE TABLE service_results (
     used_template_id INT REFERENCES service_report_templates(template_id),
     is_abnormal BOOLEAN DEFAULT FALSE,
     result_time TIMESTAMPTZ DEFAULT NOW(),
-	deleted_at TIMESTAMPTZ
-);
+	  deleted_at TIMESTAMPTZ
+); -- Done
 
 CREATE TABLE result_details_numeric (
     detail_id BIGSERIAL PRIMARY KEY,
@@ -217,7 +218,7 @@ CREATE TABLE result_details_numeric (
     indicator_id INT REFERENCES ref_lab_indicators(indicator_id),
     value_measured DECIMAL(10,4),
     is_critical BOOLEAN DEFAULT FALSE
-);
+); -- Done
 
 CREATE TABLE result_images (
     image_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -246,7 +247,7 @@ CREATE TABLE annotation_projects (
     is_active BOOLEAN DEFAULT TRUE,
     created_by UUID REFERENCES staff_profiles(staff_id),
     created_at TIMESTAMPTZ DEFAULT NOW()
-);
+); -- Done
 
 CREATE TABLE image_annotations (
     annotation_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -268,7 +269,7 @@ CREATE TABLE image_annotations (
             'APPROVED'
         )),
     created_at TIMESTAMPTZ DEFAULT NOW()
-);
+); -- Done
 
 CREATE TABLE annotation_project_images (
     project_id UUID NOT NULL REFERENCES annotation_projects(project_id),
@@ -278,7 +279,7 @@ CREATE TABLE annotation_project_images (
     added_at TIMESTAMPTZ DEFAULT NOW(),
 
     PRIMARY KEY (project_id, image_id)
-);
+); -- Done
 
 
 CREATE TABLE result_discussions (
@@ -290,7 +291,7 @@ CREATE TABLE result_discussions (
     lft INT NOT NULL,
     rgt INT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
-);
+); -- Done
 
 -- BẢNG QUẢN LÝ KHO & THUỐC
 CREATE TABLE ref_drug_categories (
@@ -298,7 +299,7 @@ CREATE TABLE ref_drug_categories (
     parent_id INT REFERENCES ref_drug_categories(category_id),
     category_code VARCHAR(20),          -- VD: "VI.1.a"
     category_name VARCHAR(255) NOT NULL -- VD: "Thuốc trị giun, sán đường ruột"
-);
+); -- Done
 
 CREATE TABLE ref_drugs (
     drug_id SERIAL PRIMARY KEY,
@@ -315,7 +316,7 @@ CREATE TABLE ref_drugs (
 
     reorder_level INT,                      -- Ngưỡng tồn tối thiểu để cảnh báo nhập
     is_active BOOLEAN DEFAULT TRUE
-);
+); -- Done
 
 CREATE TABLE drug_interactions (
     interaction_id SERIAL PRIMARY KEY,
@@ -324,13 +325,13 @@ CREATE TABLE drug_interactions (
     severity VARCHAR(20),                   -- Ví dụ: "MINOR", "MODERATE", "MAJOR"
     warning_message TEXT,
     CONSTRAINT uq_interaction_pair UNIQUE (drug_a_id, drug_b_id)
-);
+); -- Done
 
 CREATE TABLE inventory_locations (
     location_id SERIAL PRIMARY KEY,
     path LTREE UNIQUE NOT NULL,             -- Ví dụ: "PHARMACY.ROOM1.SHELF3.BIN2"
     location_name VARCHAR(100)
-);
+); -- Done
 
 CREATE TABLE drug_suppliers (
     supplier_id SERIAL PRIMARY KEY,
@@ -341,7 +342,7 @@ CREATE TABLE drug_suppliers (
     address TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW()
-);
+); -- Done
 
 CREATE TABLE drug_imports (
     import_id SERIAL PRIMARY KEY,
@@ -352,7 +353,7 @@ CREATE TABLE drug_imports (
     imported_by UUID REFERENCES staff_profiles(staff_id), -- Nhân viên nhập kho
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
-);
+); -- Done
 
 CREATE TABLE drug_import_details (
     import_detail_id SERIAL PRIMARY KEY,
@@ -365,7 +366,7 @@ CREATE TABLE drug_import_details (
     unit_price DECIMAL(10,2) NOT NULL       -- Giá nhập một đơn vị
 
     -- Nếu cần có thêm thuế, chiết khấu... có thể bổ sung sau
-);
+); -- Done
 
 CREATE TABLE drug_batches (
     batch_id SERIAL PRIMARY KEY,
@@ -400,7 +401,7 @@ CREATE TABLE prescriptions (
 
     created_at TIMESTAMPTZ DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
-);
+); -- DONE
 
 CREATE TABLE prescription_details (
     detail_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -409,7 +410,7 @@ CREATE TABLE prescription_details (
     drug_id INT REFERENCES ref_drugs(drug_id),
     quantity INT CHECK (quantity > 0),
     usage_note TEXT                             -- Cách dùng: "1 viên x 2 lần/ngày sau ăn"
-);
+); -- Done
 
 CREATE TABLE prescription_batch_dispenses (
     id BIGSERIAL PRIMARY KEY,
@@ -420,7 +421,7 @@ CREATE TABLE prescription_batch_dispenses (
     quantity INT NOT NULL CHECK (quantity > 0),  -- số lượng xuất từ lô này
 
     dispensed_at TIMESTAMPTZ DEFAULT NOW(),
-);
+); -- Done
 
 
 -- BẢNG TÀI CHÍNH & NHÂN SỰ
@@ -434,7 +435,7 @@ CREATE TABLE invoices (
 	created_at TIMESTAMPTZ DEFAULT NOW(),
     payment_time TIMESTAMPTZ, -- có thể set = lần thanh toán cuối cùng / khi đủ tiền
 	deleted_at TIMESTAMPTZ
-);
+); -- Done
 
 CREATE TABLE invoice_items (
     invoice_item_id BIGSERIAL PRIMARY KEY,
@@ -452,13 +453,13 @@ CREATE TABLE invoice_items (
     quantity INT NOT NULL CHECK (quantity > 0),
     unit_price DECIMAL(15,2) NOT NULL,
     line_amount DECIMAL(15,2) NOT NULL -- line_amount=quantity×unit_price
-);
+); -- Done
 
 CREATE TABLE ref_payment_methods (
     payment_method_code VARCHAR(20) PRIMARY KEY,  -- 'CASH', 'BANK', 'CARD', 'MOMO', 'ZALO', ...
     method_name VARCHAR(100) NOT NULL,           -- "Tiền mặt", "Chuyển khoản ngân hàng", ...
     is_active BOOLEAN DEFAULT TRUE
-);
+); -- Done
 
 CREATE TABLE invoice_payments (
     payment_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -481,10 +482,10 @@ CHECK (
 OR (item_type = 'DRUG' AND prescription_detail_id IS NOT NULL AND service_item_id IS NULL)
 OR (item_type = 'CONSULTATION' AND service_item_id IS NULL AND prescription_detail_id IS NULL)
 OR (item_type = 'OTHER')
-);
+); -- Done
 
 
-
+-- BẢNG CHẤM CÔNG
 CREATE TABLE hr_shifts (
     shift_id SERIAL PRIMARY KEY,
     shift_name VARCHAR(50),
@@ -497,7 +498,7 @@ CREATE TABLE hr_shifts (
         break_start IS NULL 
         OR (start_time <= break_start AND break_start < break_end AND break_end <= end_time)
     )
-);
+); -- Done
 
 CREATE TABLE hr_leave_requests (
     request_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -514,7 +515,7 @@ CREATE TABLE hr_leave_requests (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT chk_valid_dates CHECK (end_date >= start_date)
-);
+); -- Done
 
 CREATE TABLE hr_time_attendance (
     attendance_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -548,7 +549,7 @@ CREATE TABLE hr_time_attendance (
     admin_notes TEXT,
 
     CONSTRAINT uk_staff_work_date UNIQUE (staff_id, work_date)
-);
+); -- Done
 
 CREATE TABLE hr_salary_config (
     config_id SERIAL PRIMARY KEY,
@@ -558,7 +559,7 @@ CREATE TABLE hr_salary_config (
     effective_date DATE NOT NULL DEFAULT CURRENT_DATE,
     end_date DATE,
     CONSTRAINT uk_staff_effective_date UNIQUE (staff_id, effective_date)
-);
+); -- Done
 
 CREATE TABLE hr_allowances (
     allowance_id SERIAL PRIMARY KEY,
@@ -586,7 +587,7 @@ CREATE TABLE hr_allowances (
     CONSTRAINT chk_allowance_dates CHECK (
         end_date IS NULL OR end_date >= start_date
     )
-);
+); -- Done
 
 
 CREATE TABLE hr_payroll (
@@ -626,7 +627,7 @@ CREATE TABLE system_notifications (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     read_at TIMESTAMPTZ,
     is_deleted BOOLEAN DEFAULT FALSE
-);
+); -- Done
 
 CREATE INDEX idx_notifications_user_read ON system_notifications(user_id, is_read, created_at DESC);
 
@@ -638,7 +639,7 @@ CREATE TABLE system_config (
     description TEXT,
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     updated_by UUID REFERENCES staff_profiles(staff_id)
-);
+); -- Done
 
 CREATE TABLE system_audit_logs (
     log_id BIGSERIAL PRIMARY KEY,
@@ -650,7 +651,7 @@ CREATE TABLE system_audit_logs (
     new_value JSONB,
     ip_address INET,
     created_at TIMESTAMPTZ DEFAULT NOW()
-);
+); -- Done
 
 CREATE UNIQUE INDEX uq_sys_users_username_active 
 ON sys_users(username) 

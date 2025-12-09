@@ -7,8 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "typeorm": "npm run build && npx typeorm -d dist/config/typeorm.config.js",
-    "migration:rename": "npx ts-node ./scripts/rename-latest-migration.ts",
-    "migration:generate": "npm run typeorm -- migration:generate & npm run migration:rename",
+    "migration:generate": "npm run typeorm -- migration:generate",
     "migration:create": "npx typeorm migration:create",
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",

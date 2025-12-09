@@ -10,43 +10,28 @@ import {
 import { MedicalEncounter } from '../clinical/medical_encounters.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
-export enum InvoiceStatus {
-  DRAFT = 'DRAFT',
+export enum ServiceRequestPaymentStatus {
   UNPAID = 'UNPAID',
-  PARTIAL = 'PARTIAL',
+  PARTIALLY_PAID = 'PARTIALLY_PAID',
   PAID = 'PAID',
   CANCELLED = 'CANCELLED',
 }
 
-@Entity('invoices')
-export class Invoice {
-  @PrimaryGeneratedColumn('uuid', { name: 'invoice_id' })
-  invoiceId: string;
+@Entity('service_requests')
+export class ServiceRequest {
+  @PrimaryGeneratedColumn('uuid', { name: 'request_id' })
+  requestId: string;
 
   @ManyToOne(() => MedicalEncounter, { nullable: true })
   @JoinColumn({ name: 'encounter_id', referencedColumnName: 'encounterId' })
   encounterId?: MedicalEncounter;
 
   @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'cashier_id', referencedColumnName: 'staffId' })
-  cashierId?: StaffProfile;
-
-  @Column({
-    name: 'total_amount',
-    type: 'numeric',
-    precision: 15,
-    scale: 2,
-    nullable: true,
+  @JoinColumn({
+    name: 'requesting_doctor_id',
+    referencedColumnName: 'staffId',
   })
-  totalAmount?: string;
-
-  @Column({
-    name: 'status',
-    type: 'enum',
-    enum: InvoiceStatus,
-    default: InvoiceStatus.UNPAID,
-  })
-  status: InvoiceStatus;
+  requestingDoctorId?: StaffProfile;
 
   @CreateDateColumn({
     name: 'created_at',
@@ -55,11 +40,15 @@ export class Invoice {
   createdAt: Date;
 
   @Column({
-    name: 'payment_time',
-    type: 'timestamptz',
-    nullable: true,
+    name: 'payment_status',
+    type: 'enum',
+    enum: ServiceRequestPaymentStatus,
+    default: ServiceRequestPaymentStatus.UNPAID,
   })
-  paymentTime?: Date;
+  paymentStatus: ServiceRequestPaymentStatus;
+
+  @Column({ name: 'notes', type: 'text', nullable: true })
+  notes?: string;
 
   @DeleteDateColumn({
     name: 'deleted_at',

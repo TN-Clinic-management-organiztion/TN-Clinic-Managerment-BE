@@ -37,15 +37,15 @@ export class StaffProfile {
   // role_id -> sys_roles.role_id
   @ManyToOne(() => SysRole, { nullable: false })
   @JoinColumn({ name: 'role_id', referencedColumnName: 'roleId' })
-  role: SysRole;
+  roleId: SysRole;
 
   // assigned_room_id -> org_rooms.room_id
   @ManyToOne(() => OrgRoom, { nullable: true })
   @JoinColumn({ name: 'assigned_room_id', referencedColumnName: 'roomId' })
-  assignedRoom?: OrgRoom;
+  assignedRoomId?: OrgRoom;
 
   // specialty_id -> ref_specialties.specialty_id
   @ManyToOne(() => RefSpecialty, { nullable: true })
   @JoinColumn({ name: 'specialty_id', referencedColumnName: 'specialtyId' })
-  specialty?: RefSpecialty;
+  specialtyId?: RefSpecialty;
 }
