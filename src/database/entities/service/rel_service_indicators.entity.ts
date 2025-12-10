@@ -4,20 +4,23 @@ import { RefLabIndicator } from './ref_lab_indicators.entity';
 
 @Entity('rel_service_indicators')
 export class RelServiceIndicator {
+  // --- KEYS (Raw IDs) ---
   @PrimaryColumn({ name: 'service_id' })
-  serviceId: number;
+  service_id: number;
 
   @PrimaryColumn({ name: 'indicator_id' })
-  indicatorId: number;
+  indicator_id: number;
 
+  // --- RELATIONS ---
   @ManyToOne(() => RefService)
-  @JoinColumn({ name: 'service_id', referencedColumnName: 'serviceId' })
+  @JoinColumn({ name: 'service_id', referencedColumnName: 'service_id' })
   service: RefService;
 
   @ManyToOne(() => RefLabIndicator)
-  @JoinColumn({ name: 'indicator_id', referencedColumnName: 'indicatorId' })
+  @JoinColumn({ name: 'indicator_id', referencedColumnName: 'indicator_id' })
   indicator: RefLabIndicator;
 
+  // --- COLUMNS ---
   @Column({ name: 'sort_order', type: 'int', nullable: true })
-  sortOrder?: number;
+  sort_order?: number | null;
 }

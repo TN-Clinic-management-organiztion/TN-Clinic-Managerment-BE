@@ -9,7 +9,7 @@ import {
 @Entity('sys_users')
 export class SysUser {
   @PrimaryGeneratedColumn('uuid', { name: 'user_id' })
-  userId: string;
+  user_id: string;
 
   @Column({ name: 'username', length: 100, unique: true })
   username: string;
@@ -18,23 +18,23 @@ export class SysUser {
   password: string;
 
   @Column({ name: 'email', length: 150, nullable: true })
-  email?: string;
+  email?: string | null;
 
   @Column({ name: 'phone', length: 20, nullable: true })
-  phone?: string;
+  phone?: string | null;
 
   @Column({ name: 'cccd', length: 12, nullable: true })
-  cccd?: string;
+  cccd?: string | null;
 
   @Column({ name: 'is_active', default: true })
-  isActive: boolean;
+  is_active: boolean;
 
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',
   })
-  createdAt: Date;
+  created_at: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
-  deletedAt?: Date;
+  deleted_at?: Date | null;
 }

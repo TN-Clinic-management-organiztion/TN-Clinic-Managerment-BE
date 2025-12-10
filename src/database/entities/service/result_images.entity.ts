@@ -1,42 +1,44 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ServiceResult } from './service_results.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
 @Entity('result_images')
 export class ResultImage {
   @PrimaryGeneratedColumn('uuid', { name: 'image_id' })
-  imageId: string;
+  image_id: string;
 
+  // --- RAW FKs ---
+  @Column({ name: 'result_id', type: 'uuid', nullable: true })
+  result_id?: string | null;
+
+  @Column({ name: 'uploaded_by', type: 'uuid', nullable: true })
+  uploaded_by?: string | null;
+
+  // --- RELATIONS ---
   @ManyToOne(() => ServiceResult, { nullable: true })
-  @JoinColumn({ name: 'result_id', referencedColumnName: 'resultId' })
-  resultId?: ServiceResult;
-
-  @Column({ name: 'original_image_url', length: 500 })
-  originalImageUrl: string;
-
-  @Column({ name: 'file_name', length: 255, nullable: true })
-  fileName?: string;
-
-  @Column({ name: 'file_size', type: 'bigint', nullable: true })
-  fileSize?: string;
-
-  @Column({ name: 'mime_type', length: 100, nullable: true })
-  mimeType?: string;
-
-  @CreateDateColumn({
-    name: 'uploaded_at',
-    type: 'timestamptz',
-  })
-  uploadedAt: Date;
+  @JoinColumn({ name: 'result_id', referencedColumnName: 'result_id' })
+  result?: ServiceResult;
 
   @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'uploaded_by', referencedColumnName: 'staffId' })
-  uploadedBy?: StaffProfile;
+  @JoinColumn({ name: 'uploaded_by', referencedColumnName: 'staff_id' })
+  uploader?: StaffProfile;
+
+  // --- COLUMNS ---
+  @Column({ name: 'public_id', length: 255, nullable: true })
+  public_id: string | null;
+
+  @Column({ name: 'original_image_url', length: 500 })
+  original_image_url: string | null;
+
+  @Column({ name: 'file_name', length: 255, nullable: true })
+  file_name?: string | null;
+
+  @Column({ name: 'file_size', type: 'bigint', nullable: true })
+  file_size?: number;
+
+  @Column({ name: 'mime_type', length: 100, nullable: true })
+  mime_type?: string | null;
+
+  @CreateDateColumn({ name: 'uploaded_at', type: 'timestamptz' })
+  uploaded_at: Date;
 }

@@ -9,15 +9,21 @@ import {
 @Entity('ref_service_categories')
 export class RefServiceCategory {
   @PrimaryGeneratedColumn({ name: 'category_id' })
-  categoryId: number;
+  category_id: number;
 
-  @Column({ name: 'category_name', length: 255 })
-  categoryName: string;
+  // --- RAW FK ---
+  @Column({ name: 'parent_id', type: 'int', nullable: true })
+  parent_id?: number | null;
 
+  // --- RELATION ---
   @ManyToOne(() => RefServiceCategory, { nullable: true })
-  @JoinColumn({ name: 'parent_id', referencedColumnName: 'categoryId' })
-  parentId?: RefServiceCategory;
+  @JoinColumn({ name: 'parent_id', referencedColumnName: 'category_id' })
+  parent?: RefServiceCategory;
+
+  // --- COLUMNS ---
+  @Column({ name: 'category_name', length: 255 })
+  category_name: string;
 
   @Column({ name: 'is_system_root', default: false })
-  isSystemRoot: boolean;
+  is_system_root: boolean;
 }

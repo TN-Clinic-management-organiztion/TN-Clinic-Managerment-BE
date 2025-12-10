@@ -12,14 +12,14 @@ export enum RoomType {
 @Entity('org_rooms')
 export class OrgRoom {
   @PrimaryGeneratedColumn({ name: 'room_id' })
-  roomId: number;
+  room_id: number;
 
-  @Column({name: 'room_name', length: 100})
-  roomName: string;
+  @Column({ name: 'room_name', length: 100 })
+  room_name: string;
 
-  @Column({name: 'room_type', type: 'enum', enum: RoomType, nullable: true})
-  roomType: RoomType;
+  @Column({ name: 'room_type', type: 'enum', enum: RoomType, nullable: true })
+  room_type: RoomType;
 
-  @Column({name: 'is_active', default: true})
-  isActive: boolean;
+  @Column({ name: 'is_active', default: true })
+  is_active: boolean;
 }

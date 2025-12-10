@@ -1,11 +1,4 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
 export enum AnnotationTaskType {
@@ -20,31 +13,30 @@ export enum AnnotationTaskType {
 @Entity('annotation_projects')
 export class AnnotationProject {
   @PrimaryGeneratedColumn('uuid', { name: 'project_id' })
-  projectId: string;
+  project_id: string;
 
+  // --- RAW FKs ---
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
+  created_by?: string | null;
+
+  // --- RELATIONS ---
+  @ManyToOne(() => StaffProfile, { nullable: true })
+  @JoinColumn({ name: 'created_by', referencedColumnName: 'staff_id' })
+  creator?: StaffProfile;
+
+  // --- COLUMNS ---
   @Column({ name: 'name', length: 255 })
   name: string;
 
   @Column({ name: 'description', type: 'text', nullable: true })
-  description?: string;
+  description?: string | null;
 
-  @Column({
-    name: 'task_type',
-    type: 'enum',
-    enum: AnnotationTaskType,
-  })
-  taskType: AnnotationTaskType;
+  @Column({ name: 'task_type', type: 'enum', enum: AnnotationTaskType })
+  task_type: AnnotationTaskType;
 
   @Column({ name: 'is_active', default: true })
-  isActive: boolean;
+  is_active: boolean;
 
-  @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'created_by', referencedColumnName: 'staffId' })
-  createdBy?: StaffProfile;
-
-  @CreateDateColumn({
-    name: 'created_at',
-    type: 'timestamptz',
-  })
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at: Date;
 }

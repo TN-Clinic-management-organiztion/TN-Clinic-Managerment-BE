@@ -11,32 +11,32 @@ export class SystemAuditLog {
     name: 'log_id',
     type: 'bigint',
   })
-  logId: string;
+  log_id: string;
 
   @Column({ name: 'user_id', type: 'uuid', nullable: true })
-  userId?: string;
+  user_id?: string | null;
 
   @Column({ name: 'action_type', length: 50, nullable: true })
-  actionType?: string;
+  action_type?: string | null;
 
   @Column({ name: 'table_name', length: 50, nullable: true })
-  tableName?: string;
+  table_name?: string | null;
 
   @Column({ name: 'record_id', length: 50, nullable: true })
-  recordId?: string;
+  record_id?: string | null;
 
   @Column({ name: 'old_value', type: 'jsonb', nullable: true })
-  oldValue?: any;
+  old_value?: any;
 
   @Column({ name: 'new_value', type: 'jsonb', nullable: true })
-  newValue?: any;
+  new_value?: any;
 
   @Column({ name: 'ip_address', type: 'inet', nullable: true })
-  ipAddress?: string;
+  ip_address?: string | null;
 
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamptz',
   })
-  createdAt: Date;
+  created_at: Date;
 }

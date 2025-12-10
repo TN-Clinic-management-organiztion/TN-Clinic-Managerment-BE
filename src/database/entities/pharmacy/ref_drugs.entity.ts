@@ -1,45 +1,45 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { RefDrugCategory } from './ref_drug_categories.entity';
 
 @Entity('ref_drugs')
 export class RefDrug {
   @PrimaryGeneratedColumn({ name: 'drug_id' })
-  drugId: number;
+  drug_id: number;
 
+  // --- RAW FKs ---
+  @Column({ name: 'category_id', type: 'int', nullable: true })
+  category_id?: number | null;
+
+  // --- RELATIONS ---
   @ManyToOne(() => RefDrugCategory, { nullable: true })
-  @JoinColumn({ name: 'category_id', referencedColumnName: 'categoryId' })
-  categoryId?: RefDrugCategory;
+  @JoinColumn({ name: 'category_id', referencedColumnName: 'category_id' })
+  category?: RefDrugCategory;
 
+  // --- COLUMNS ---
   @Column({ name: 'drug_name', length: 255 })
-  drugName: string;
+  drug_name: string;
 
   @Column({ name: 'active_ingredient', length: 255, nullable: true })
-  activeIngredient?: string;
+  active_ingredient?: string | null;
 
   @Column({ name: 'drug_code', length: 50, unique: true, nullable: true })
-  drugCode?: string;
+  drug_code?: string | null;
 
   @Column({ name: 'dosage_form', length: 50, nullable: true })
-  dosageForm?: string;
+  dosage_form?: string | null;
 
   @Column({ name: 'route', length: 50, nullable: true })
-  route?: string;
+  route?: string | null;
 
   @Column({ name: 'strength', length: 50, nullable: true })
-  strength?: string;
+  strength?: string | null;
 
   @Column({ name: 'unit_name', length: 50, nullable: true })
-  unitName?: string;
+  unit_name?: string | null;
 
   @Column({ name: 'reorder_level', type: 'int', nullable: true })
-  reorderLevel?: number;
+  reorder_level?: number | null;
 
   @Column({ name: 'is_active', default: true })
-  isActive: boolean;
+  is_active: boolean;
 }

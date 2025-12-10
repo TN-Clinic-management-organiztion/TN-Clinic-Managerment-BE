@@ -18,16 +18,25 @@ export enum ServiceRequestItemStatus {
 @Entity('service_request_items')
 export class ServiceRequestItem {
   @PrimaryGeneratedColumn('uuid', { name: 'item_id' })
-  itemId: string;
+  item_id: string;
 
+  // --- RAW FKs ---
+  @Column({ name: 'request_id', type: 'uuid', nullable: true })
+  request_id?: string | null;
+
+  @Column({ name: 'service_id', type: 'int', nullable: true })
+  service_id?: number | null;
+
+  // --- RELATIONS ---
   @ManyToOne(() => ServiceRequest, { nullable: true })
-  @JoinColumn({ name: 'request_id', referencedColumnName: 'requestId' })
-  requestId?: ServiceRequest;
+  @JoinColumn({ name: 'request_id', referencedColumnName: 'request_id' })
+  request?: ServiceRequest;
 
   @ManyToOne(() => RefService, { nullable: true })
-  @JoinColumn({ name: 'service_id', referencedColumnName: 'serviceId' })
-  serviceId?: RefService;
+  @JoinColumn({ name: 'service_id', referencedColumnName: 'service_id' })
+  service?: RefService;
 
+  // --- COLUMNS ---
   @Column({
     name: 'status',
     type: 'enum',

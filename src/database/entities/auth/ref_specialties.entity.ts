@@ -3,17 +3,17 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('ref_specialties')
 export class RefSpecialty {
   @PrimaryGeneratedColumn({ name: 'specialty_id' })
-  specialtyId: number;
+  specialty_id: number;
 
   @Column({ name: 'specialty_code', length: 50, unique: true })
-  specialtyCode: string;
+  specialty_code: string;
 
   @Column({ name: 'specialty_name', length: 255 })
-  specialtyName: string;
+  specialty_name: string;
 
   @Column({ name: 'description', type: 'text', nullable: true })
-  description?: string;
+  description?: string | null;
 
   @Column({ name: 'is_active', default: true })
-  isActive: boolean;
+  is_active: boolean;
 }

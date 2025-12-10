@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ParaclinicalModule } from 'src/modules/paraclinical/paraclinical.module';
+import { CloudinaryModule } from 'src/shared/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         synchronize: false
       })
     }),
+    CloudinaryModule,
+    ParaclinicalModule
   ],
 })
 export class AppModule {}
