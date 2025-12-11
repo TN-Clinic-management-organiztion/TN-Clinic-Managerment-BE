@@ -1,8 +1,24 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
-export enum LeaveType { ANNUAL = 'ANNUAL', SICK = 'SICK', EMERGENCY = 'EMERGENCY' }
-export enum LeaveRequestStatus { PENDING = 'PENDING', APPROVED = 'APPROVED', REJECTED = 'REJECTED' }
+export enum LeaveType {
+  ANNUAL = 'ANNUAL',
+  SICK = 'SICK',
+  EMERGENCY = 'EMERGENCY',
+}
+export enum LeaveRequestStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
 
 @Entity('hr_leave_requests')
 export class HrLeaveRequest {
@@ -38,17 +54,22 @@ export class HrLeaveRequest {
   @Column({ name: 'total_days', type: 'numeric', precision: 4, scale: 1 })
   total_days: string;
 
-  @Column({ name: 'status', type: 'enum', enum: LeaveRequestStatus, default: LeaveRequestStatus.PENDING })
+  @Column({
+    name: 'status',
+    type: 'enum',
+    enum: LeaveRequestStatus,
+    default: LeaveRequestStatus.PENDING,
+  })
   status: LeaveRequestStatus;
 
   @Column({ name: 'decision_at', type: 'timestamptz', nullable: true })
-  decision_at?: Date | null;
+  decision_at?: Date;
 
   @Column({ name: 'reason', type: 'text' })
   reason: string;
 
   @Column({ name: 'contact_info', length: 100, nullable: true })
-  contact_info?: string | null;
+  contact_info?: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at: Date;

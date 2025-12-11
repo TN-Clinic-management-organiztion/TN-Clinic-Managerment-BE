@@ -1,4 +1,11 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Invoice } from './invoices.entity';
 import { RefPaymentMethod } from './ref_payment_methods.entity';
 
@@ -20,7 +27,10 @@ export class InvoicePayment {
   invoice: Invoice;
 
   @ManyToOne(() => RefPaymentMethod, { nullable: false })
-  @JoinColumn({ name: 'payment_method_code', referencedColumnName: 'payment_method_code' })
+  @JoinColumn({
+    name: 'payment_method_code',
+    referencedColumnName: 'payment_method_code',
+  })
   payment_method: RefPaymentMethod;
 
   // --- COLUMNS ---
@@ -31,8 +41,8 @@ export class InvoicePayment {
   paid_at: Date;
 
   @Column({ name: 'transaction_ref', length: 100, nullable: true })
-  transaction_ref?: string | null;
+  transaction_ref?: string;
 
   @Column({ name: 'notes', type: 'text', nullable: true })
-  notes?: string | null;
+  notes?: string;
 }

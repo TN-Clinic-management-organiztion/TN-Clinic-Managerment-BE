@@ -6,13 +6,13 @@ export class RefLabIndicator {
   indicator_id: number;
 
   @Column({ name: 'indicator_code', length: 50, nullable: true })
-  indicator_code?: string | null;
+  indicator_code?: string;
 
   @Column({ name: 'indicator_name', length: 200 })
   indicator_name: string;
 
   @Column({ name: 'unit', length: 50, nullable: true })
-  unit?: string | null;
+  unit?: string;
 
   @Column({
     name: 'ref_min_male',
@@ -21,7 +21,7 @@ export class RefLabIndicator {
     scale: 4,
     nullable: true,
   })
-  ref_min_male?: string | null;
+  ref_min_male?: string;
 
   @Column({
     name: 'ref_max_male',
@@ -30,7 +30,7 @@ export class RefLabIndicator {
     scale: 4,
     nullable: true,
   })
-  ref_max_male?: string | null;
+  ref_max_male?: string;
 
   @Column({
     name: 'ref_min_female',
@@ -39,7 +39,7 @@ export class RefLabIndicator {
     scale: 4,
     nullable: true,
   })
-  ref_min_female?: string | null;
+  ref_min_female?: string;
 
   @Column({
     name: 'ref_max_female',
@@ -48,5 +48,5 @@ export class RefLabIndicator {
     scale: 4,
     nullable: true,
   })
-  ref_max_female?: string | null;
+  ref_max_female?: string;
 }

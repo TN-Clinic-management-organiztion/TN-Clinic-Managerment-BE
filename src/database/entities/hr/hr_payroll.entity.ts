@@ -142,7 +142,7 @@ export class HrPayroll {
     type: 'timestamptz',
     nullable: true,
   })
-  paid_at?: Date | null;
+  paid_at?: Date;
 
   @CreateDateColumn({
     name: 'calculated_at',
@@ -151,7 +151,7 @@ export class HrPayroll {
   calculated_at: Date;
 
   @Column({ name: 'notes', type: 'text', nullable: true })
-  notes?: string | null;
+  notes?: string;
 
   @ManyToOne(() => StaffProfile, { nullable: false })
   @JoinColumn({ name: 'staff_id', referencedColumnName: 'staff_id' })

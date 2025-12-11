@@ -1,7 +1,18 @@
-import { Column, DeleteDateColumn, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryColumn,
+} from 'typeorm';
 import { SysUser } from './sys_users.entity';
 
-export enum Gender { NAM = 'NAM', NU = 'NU', KHAC = 'KHAC' }
+export enum Gender {
+  NAM = 'NAM',
+  NU = 'NU',
+  KHAC = 'KHAC',
+}
 
 @Entity('patient_profiles')
 export class PatientProfile {
@@ -24,14 +35,14 @@ export class PatientProfile {
   gender: Gender;
 
   @Column({ name: 'address', type: 'text', nullable: true })
-  address?: string | null;
+  address?: string;
 
   @Column({ name: 'medical_history', type: 'text', nullable: true })
-  medical_history?: string | null;
+  medical_history?: string;
 
   @Column({ name: 'allergy_history', type: 'text', nullable: true })
-  allergy_history?: string | null;
+  allergy_history?: string;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
-  deleted_at?: Date | null;
+  deleted_at?: Date;
 }

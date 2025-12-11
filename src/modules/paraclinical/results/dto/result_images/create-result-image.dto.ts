@@ -10,20 +10,20 @@ export class CreateResultImageDto {
   public_id?: string;
 
   @IsUrl()
-  @IsNotEmpty()
-  original_image_url: string;
+  @IsOptional()
+  original_image_url?: string;
 
   @IsString()
-  @IsNotEmpty()
-  file_name: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  file_size: number;
+  @IsOptional()
+  file_name?: string;
 
   @IsString()
-  @IsNotEmpty()
-  mime_type: string;
+  @IsOptional()
+  file_size?: string;
+
+  @IsString()
+  @IsOptional()
+  mime_type?: string;
 
   @IsUUID()
   @IsNotEmpty()

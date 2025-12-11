@@ -1,4 +1,10 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('ref_drug_categories')
 export class RefDrugCategory {
@@ -16,7 +22,7 @@ export class RefDrugCategory {
 
   // --- COLUMNS ---
   @Column({ name: 'category_code', length: 20, nullable: true })
-  category_code?: string | null;
+  category_code?: string;
 
   @Column({ name: 'category_name', length: 255 })
   category_name: string;

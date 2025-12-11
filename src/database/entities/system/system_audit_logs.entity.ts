@@ -14,16 +14,16 @@ export class SystemAuditLog {
   log_id: string;
 
   @Column({ name: 'user_id', type: 'uuid', nullable: true })
-  user_id?: string | null;
+  user_id?: string;
 
-  @Column({ name: 'action_type', length: 50, nullable: true })
-  action_type?: string | null;
+  @Column({ name: 'action_type', type: 'varchar', length: 50, nullable: true })
+  action_type?: string;
 
   @Column({ name: 'table_name', length: 50, nullable: true })
-  table_name?: string | null;
+  table_name?: string;
 
   @Column({ name: 'record_id', length: 50, nullable: true })
-  record_id?: string | null;
+  record_id?: string;
 
   @Column({ name: 'old_value', type: 'jsonb', nullable: true })
   old_value?: any;
@@ -32,7 +32,7 @@ export class SystemAuditLog {
   new_value?: any;
 
   @Column({ name: 'ip_address', type: 'inet', nullable: true })
-  ip_address?: string | null;
+  ip_address?: string;
 
   @CreateDateColumn({
     name: 'created_at',

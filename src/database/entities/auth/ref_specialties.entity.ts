@@ -12,7 +12,7 @@ export class RefSpecialty {
   specialty_name: string;
 
   @Column({ name: 'description', type: 'text', nullable: true })
-  description?: string | null;
+  description?: string;
 
   @Column({ name: 'is_active', default: true })
   is_active: boolean;

@@ -14,16 +14,16 @@ export class DrugSupplier {
   supplier_name: string;
 
   @Column({ name: 'contact_person', length: 100, nullable: true })
-  contact_person?: string | null;
+  contact_person?: string;
 
   @Column({ name: 'phone', length: 20, nullable: true })
-  phone?: string | null;
+  phone?: string;
 
   @Column({ name: 'email', length: 150, nullable: true })
-  email?: string | null;
+  email?: string;
 
   @Column({ name: 'address', type: 'text', nullable: true })
-  address?: string | null;
+  address?: string;
 
   @Column({ name: 'is_active', default: true })
   is_active: boolean;

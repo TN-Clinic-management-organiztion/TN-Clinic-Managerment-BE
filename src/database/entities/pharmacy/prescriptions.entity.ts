@@ -1,8 +1,21 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { MedicalEncounter } from '../clinical/medical_encounters.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
-export enum PrescriptionStatus { DRAFT = 'DRAFT', ISSUED = 'ISSUED', DISPENSED = 'DISPENSED', CANCELLED = 'CANCELLED' }
+export enum PrescriptionStatus {
+  DRAFT = 'DRAFT',
+  ISSUED = 'ISSUED',
+  DISPENSED = 'DISPENSED',
+  CANCELLED = 'CANCELLED',
+}
 
 @Entity('prescriptions')
 export class Prescription {
@@ -25,23 +38,34 @@ export class Prescription {
   encounter?: MedicalEncounter;
 
   @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'prescribing_doctor_id', referencedColumnName: 'staff_id' })
+  @JoinColumn({
+    name: 'prescribing_doctor_id',
+    referencedColumnName: 'staff_id',
+  })
   prescribing_doctor?: StaffProfile;
 
   @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'dispensing_pharmacist_id', referencedColumnName: 'staff_id' })
+  @JoinColumn({
+    name: 'dispensing_pharmacist_id',
+    referencedColumnName: 'staff_id',
+  })
   dispensing_pharmacist?: StaffProfile;
 
   // --- COLUMNS ---
   @Column({ name: 'interaction_override_reason', type: 'text', nullable: true })
-  interaction_override_reason?: string | null;
+  interaction_override_reason?: string;
 
-  @Column({ name: 'status', type: 'enum', enum: PrescriptionStatus, default: PrescriptionStatus.DRAFT })
+  @Column({
+    name: 'status',
+    type: 'enum',
+    enum: PrescriptionStatus,
+    default: PrescriptionStatus.DRAFT,
+  })
   status: PrescriptionStatus;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
-  deleted_at?: Date | null;
+  deleted_at?: Date;
 }

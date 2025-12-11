@@ -37,7 +37,7 @@ export class ResultDetailNumeric {
     scale: 4,
     nullable: true,
   })
-  value_measured?: string | null;
+  value_measured?: string;
 
   @Column({ name: 'is_critical', default: false })
   is_critical: boolean;

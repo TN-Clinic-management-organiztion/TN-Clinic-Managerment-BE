@@ -42,8 +42,8 @@ export class StaffProfile {
   full_name: string;
 
   @Column({ name: 'signature_url', length: 500, nullable: true })
-  signature_url?: string | null;
+  signature_url?: string;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
-  deleted_at?: Date | null;
+  deleted_at?: Date;
 }

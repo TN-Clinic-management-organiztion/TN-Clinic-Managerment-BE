@@ -1,7 +1,18 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
 import { RefDrug } from './ref_drugs.entity';
 
-export enum DrugInteractionSeverity { MINOR = 'MINOR', MODERATE = 'MODERATE', MAJOR = 'MAJOR' }
+export enum DrugInteractionSeverity {
+  MINOR = 'MINOR',
+  MODERATE = 'MODERATE',
+  MAJOR = 'MAJOR',
+}
 
 @Entity('drug_interactions')
 @Unique('uq_interaction_pair', ['drug_a_id', 'drug_b_id'])
@@ -26,9 +37,14 @@ export class DrugInteraction {
   drug_b: RefDrug;
 
   // --- COLUMNS ---
-  @Column({ name: 'severity', type: 'enum', enum: DrugInteractionSeverity, nullable: true })
+  @Column({
+    name: 'severity',
+    type: 'enum',
+    enum: DrugInteractionSeverity,
+    nullable: true,
+  })
   severity?: DrugInteractionSeverity;
 
   @Column({ name: 'warning_message', type: 'text', nullable: true })
-  warning_message?: string | null;
+  warning_message?: string;
 }

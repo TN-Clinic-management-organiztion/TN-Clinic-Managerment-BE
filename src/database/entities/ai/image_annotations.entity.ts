@@ -1,9 +1,23 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { ResultImage } from '../service/result_images.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
-export enum AnnotationSource { AI = 'AI', HUMAN = 'HUMAN' }
-export enum AnnotationStatus { DRAFT = 'DRAFT', REVIEWED = 'REVIEWED', APPROVED = 'APPROVED' }
+export enum AnnotationSource {
+  AI = 'AI',
+  HUMAN = 'HUMAN',
+}
+export enum AnnotationStatus {
+  DRAFT = 'DRAFT',
+  REVIEWED = 'REVIEWED',
+  APPROVED = 'APPROVED',
+}
 
 @Entity('image_annotations')
 export class ImageAnnotation {
@@ -12,7 +26,7 @@ export class ImageAnnotation {
 
   // --- RAW FKs ---
   @Column({ name: 'image_id', type: 'uuid' })
-  image_id: string;
+  image_id: string | null;
 
   @Column({ name: 'labeled_by', type: 'uuid', nullable: true })
   labeled_by?: string | null;
@@ -48,21 +62,26 @@ export class ImageAnnotation {
   annotation_data: any;
 
   @Column({ name: 'ai_model_name', length: 100, nullable: true })
-  ai_model_name?: string | null;
+  ai_model_name?: string;
 
   @Column({ name: 'ai_model_version', length: 50, nullable: true })
-  ai_model_version?: string | null;
+  ai_model_version?: string;
 
   @Column({ name: 'labeled_at', type: 'timestamptz', nullable: true })
-  labeled_at?: Date | null;
+  labeled_at?: Date;
 
   @Column({ name: 'reviewed_at', type: 'timestamptz', nullable: true })
-  reviewed_at?: Date | null;
+  reviewed_at?: Date;
 
   @Column({ name: 'approved_at', type: 'timestamptz', nullable: true })
-  approved_at?: Date | null;
+  approved_at?: Date;
 
-  @Column({ name: 'annotation_status', type: 'enum', enum: AnnotationStatus, default: AnnotationStatus.DRAFT })
+  @Column({
+    name: 'annotation_status',
+    type: 'enum',
+    enum: AnnotationStatus,
+    default: AnnotationStatus.DRAFT,
+  })
   annotation_status: AnnotationStatus;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

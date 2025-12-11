@@ -18,13 +18,13 @@ export class SysUser {
   password: string;
 
   @Column({ name: 'email', length: 150, nullable: true })
-  email?: string | null;
+  email?: string;
 
   @Column({ name: 'phone', length: 20, nullable: true })
-  phone?: string | null;
+  phone?: string;
 
   @Column({ name: 'cccd', length: 12, nullable: true })
-  cccd?: string | null;
+  cccd?: string;
 
   @Column({ name: 'is_active', default: true })
   is_active: boolean;
@@ -36,5 +36,5 @@ export class SysUser {
   created_at: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
-  deleted_at?: Date | null;
+  deleted_at?: Date;
 }

@@ -1,11 +1,23 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, CreateDateColumn, DeleteDateColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 import { PatientProfile } from '../auth/patient_profiles.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 import { OrgRoom } from '../auth/org_rooms.entity';
 
 export enum AppointmentStatus {
-  PENDING = 'PENDING', CONFIRMED = 'CONFIRMED', RESCHEDULED = 'RESCHEDULED',
-  CANCELLED = 'CANCELLED', NO_SHOW = 'NO_SHOW', COMPLETED = 'COMPLETED'
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  RESCHEDULED = 'RESCHEDULED',
+  CANCELLED = 'CANCELLED',
+  NO_SHOW = 'NO_SHOW',
+  COMPLETED = 'COMPLETED',
 }
 
 @Entity('online_appointments')
@@ -44,14 +56,19 @@ export class OnlineAppointment {
   appointment_time: string;
 
   @Column({ name: 'symptoms', type: 'text', nullable: true })
-  symptoms?: string | null;
+  symptoms?: string;
 
-  @Column({ name: 'status', type: 'enum', enum: AppointmentStatus, default: AppointmentStatus.CONFIRMED })
+  @Column({
+    name: 'status',
+    type: 'enum',
+    enum: AppointmentStatus,
+    default: AppointmentStatus.CONFIRMED,
+  })
   status: AppointmentStatus;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
-  deleted_at?: Date | null;
+  deleted_at?: Date;
 }

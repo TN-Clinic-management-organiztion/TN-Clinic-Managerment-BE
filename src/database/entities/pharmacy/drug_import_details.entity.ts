@@ -1,4 +1,10 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { DrugImport } from './drug_imports.entity';
 import { RefDrug } from './ref_drugs.entity';
 
@@ -25,7 +31,7 @@ export class DrugImportDetail {
 
   // --- COLUMNS ---
   @Column({ name: 'batch_number', length: 50, nullable: true })
-  batch_number?: string | null;
+  batch_number?: string;
 
   @Column({ name: 'expiry_date', type: 'date' })
   expiry_date: Date;

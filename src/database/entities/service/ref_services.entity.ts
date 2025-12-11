@@ -39,7 +39,7 @@ export class RefService {
     scale: 2,
     nullable: true,
   })
-  base_price?: string | null;
+  base_price?: string;
 
   @Column({
     name: 'result_input_type',

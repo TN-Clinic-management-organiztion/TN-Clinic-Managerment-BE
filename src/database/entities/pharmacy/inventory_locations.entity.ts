@@ -9,5 +9,5 @@ export class InventoryLocation {
   path: string;
 
   @Column({ name: 'location_name', length: 100, nullable: true })
-  location_name?: string | null;
+  location_name?: string;
 }

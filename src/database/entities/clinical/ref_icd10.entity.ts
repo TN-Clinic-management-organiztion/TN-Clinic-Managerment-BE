@@ -7,7 +7,7 @@ export class RefIcd10 {
 
   // --- RAW FKs ---
   @Column({ name: 'parent_code', length: 10, nullable: true })
-  parent_code?: string | null;
+  parent_code?: string;
 
   // --- RELATIONS ---
   @ManyToOne(() => RefIcd10, { nullable: true })
@@ -19,10 +19,10 @@ export class RefIcd10 {
   name_vi: string;
 
   @Column({ name: 'name_en', length: 500, nullable: true })
-  name_en?: string | null;
+  name_en?: string;
 
   @Column({ name: 'level', type: 'int', nullable: true })
-  level?: number | null;
+  level?: number;
 
   @Column({ name: 'is_leaf', default: false })
   is_leaf: boolean;

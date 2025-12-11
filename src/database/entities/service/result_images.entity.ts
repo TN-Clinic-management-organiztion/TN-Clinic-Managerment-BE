@@ -1,4 +1,11 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { ServiceResult } from './service_results.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
@@ -25,19 +32,19 @@ export class ResultImage {
 
   // --- COLUMNS ---
   @Column({ name: 'public_id', length: 255, nullable: true })
-  public_id: string | null;
+  public_id: string;
 
   @Column({ name: 'original_image_url', length: 500 })
-  original_image_url: string | null;
+  original_image_url: string;
 
   @Column({ name: 'file_name', length: 255, nullable: true })
-  file_name?: string | null;
+  file_name?: string;
 
   @Column({ name: 'file_size', type: 'bigint', nullable: true })
-  file_size?: number;
+  file_size?: string;
 
   @Column({ name: 'mime_type', length: 100, nullable: true })
-  mime_type?: string | null;
+  mime_type?: string;
 
   @CreateDateColumn({ name: 'uploaded_at', type: 'timestamptz' })
   uploaded_at: Date;

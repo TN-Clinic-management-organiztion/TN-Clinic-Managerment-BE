@@ -43,16 +43,16 @@ export class HrTimeAttendance {
   check_in_time?: Date | NestedSetMultipleRootError;
 
   @Column({ name: 'check_in_ip', type: 'inet', nullable: true })
-  check_in_ip?: string | null;
+  check_in_ip?: string ;
 
   @Column({ name: 'check_out_time', type: 'timestamptz', nullable: true })
-  check_out_time?: Date | null;
+  check_out_time?: Date ;
 
   @Column({ name: 'check_out_ip', type: 'inet', nullable: true })
-  check_out_ip?: string | null;
+  check_out_ip?: string ;
 
   @Column({ name: 'actual_hours', type: 'numeric', precision: 4, scale: 2, nullable: true })
-  actual_hours?: string | null;
+  actual_hours?: string ;
 
   @Column({ name: 'is_late', default: false })
   is_late: boolean;
@@ -73,5 +73,5 @@ export class HrTimeAttendance {
   status: AttendanceStatus;
 
   @Column({ name: 'admin_notes', type: 'text', nullable: true })
-  admin_notes?: string | null;
+  admin_notes?: string ;
 }

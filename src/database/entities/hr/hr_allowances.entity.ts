@@ -1,8 +1,18 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 import { SysRole } from '../auth/sys_roles.entity';
 
-export enum AllowanceTargetType { INDIVIDUAL = 'INDIVIDUAL', GROUP = 'GROUP' }
+export enum AllowanceTargetType {
+  INDIVIDUAL = 'INDIVIDUAL',
+  GROUP = 'GROUP',
+}
 
 @Entity('hr_allowances')
 export class HrAllowance {
@@ -46,10 +56,10 @@ export class HrAllowance {
   start_date: Date;
 
   @Column({ name: 'end_date', type: 'date', nullable: true })
-  end_date?: Date | null;
+  end_date?: Date;
 
   @Column({ name: 'description', type: 'text', nullable: true })
-  description?: string | null;
+  description?: string;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at: Date;

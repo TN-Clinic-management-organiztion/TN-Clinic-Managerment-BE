@@ -1,8 +1,21 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { MedicalEncounter } from '../clinical/medical_encounters.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
-export enum ServiceRequestPaymentStatus { UNPAID = 'UNPAID', PARTIALLY_PAID = 'PARTIALLY_PAID', PAID = 'PAID', CANCELLED = 'CANCELLED' }
+export enum ServiceRequestPaymentStatus {
+  UNPAID = 'UNPAID',
+  PARTIALLY_PAID = 'PARTIALLY_PAID',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
+}
 
 @Entity('service_requests')
 export class ServiceRequest {
@@ -22,19 +35,27 @@ export class ServiceRequest {
   encounter?: MedicalEncounter;
 
   @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'requesting_doctor_id', referencedColumnName: 'staff_id' })
+  @JoinColumn({
+    name: 'requesting_doctor_id',
+    referencedColumnName: 'staff_id',
+  })
   requesting_doctor?: StaffProfile;
 
   // --- COLUMNS ---
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at: Date;
 
-  @Column({ name: 'payment_status', type: 'enum', enum: ServiceRequestPaymentStatus, default: ServiceRequestPaymentStatus.UNPAID })
+  @Column({
+    name: 'payment_status',
+    type: 'enum',
+    enum: ServiceRequestPaymentStatus,
+    default: ServiceRequestPaymentStatus.UNPAID,
+  })
   payment_status: ServiceRequestPaymentStatus;
 
   @Column({ name: 'notes', type: 'text', nullable: true })
-  notes?: string | null;
+  notes?: string;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
-  deleted_at?: Date | null;
+  deleted_at?: Date;
 }

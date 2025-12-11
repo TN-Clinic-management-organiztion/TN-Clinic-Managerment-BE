@@ -33,7 +33,7 @@ export class SystemConfig {
   config_type: string;
 
   @Column({ name: 'description', type: 'text', nullable: true })
-  description?: string | null;
+  description?: string;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updated_at: Date;

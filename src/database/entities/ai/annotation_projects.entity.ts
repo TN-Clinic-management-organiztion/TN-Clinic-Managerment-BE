@@ -1,4 +1,11 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
 export enum AnnotationTaskType {
@@ -29,7 +36,7 @@ export class AnnotationProject {
   name: string;
 
   @Column({ name: 'description', type: 'text', nullable: true })
-  description?: string | null;
+  description?: string;
 
   @Column({ name: 'task_type', type: 'enum', enum: AnnotationTaskType })
   task_type: AnnotationTaskType;

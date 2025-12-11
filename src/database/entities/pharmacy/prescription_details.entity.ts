@@ -1,4 +1,10 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Prescription } from './prescriptions.entity';
 import { RefDrug } from './ref_drugs.entity';
 
@@ -16,7 +22,10 @@ export class PrescriptionDetail {
 
   // --- RELATIONS ---
   @ManyToOne(() => Prescription, { nullable: true })
-  @JoinColumn({ name: 'prescription_id', referencedColumnName: 'prescription_id' })
+  @JoinColumn({
+    name: 'prescription_id',
+    referencedColumnName: 'prescription_id',
+  })
   prescription?: Prescription;
 
   @ManyToOne(() => RefDrug, { nullable: true })
@@ -28,5 +37,5 @@ export class PrescriptionDetail {
   quantity: number;
 
   @Column({ name: 'usage_note', type: 'text', nullable: true })
-  usage_note?: string | null;
+  usage_note?: string;
 }

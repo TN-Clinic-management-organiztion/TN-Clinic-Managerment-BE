@@ -22,5 +22,5 @@ export class RelServiceIndicator {
 
   // --- COLUMNS ---
   @Column({ name: 'sort_order', type: 'int', nullable: true })
-  sort_order?: number | null;
+  sort_order?: number;
 }

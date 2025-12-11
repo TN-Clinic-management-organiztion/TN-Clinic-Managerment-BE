@@ -1,10 +1,30 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { MedicalEncounter } from '../clinical/medical_encounters.entity';
 import { OrgRoom } from '../auth/org_rooms.entity';
 
-export enum QueueTicketType { REGISTRATION = 'REGISTRATION', CONSULTATION = 'CONSULTATION', SERVICE = 'SERVICE' }
-export enum QueueSource { ONLINE = 'ONLINE', WALKIN = 'WALKIN' }
-export enum QueueStatus { WAITING = 'WAITING', CALLED = 'CALLED', IN_PROGRESS = 'IN_PROGRESS', COMPLETED = 'COMPLETED', SKIPPED = 'SKIPPED' }
+export enum QueueTicketType {
+  REGISTRATION = 'REGISTRATION',
+  CONSULTATION = 'CONSULTATION',
+  SERVICE = 'SERVICE',
+}
+export enum QueueSource {
+  ONLINE = 'ONLINE',
+  WALKIN = 'WALKIN',
+}
+export enum QueueStatus {
+  WAITING = 'WAITING',
+  CALLED = 'CALLED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  SKIPPED = 'SKIPPED',
+}
 
 @Entity('queue_tickets')
 export class QueueTicket {
@@ -34,24 +54,34 @@ export class QueueTicket {
   @Column({ name: 'display_number', type: 'int' })
   display_number: number;
 
-  @Column({ name: 'source', type: 'enum', enum: QueueSource, default: QueueSource.WALKIN })
+  @Column({
+    name: 'source',
+    type: 'enum',
+    enum: QueueSource,
+    default: QueueSource.WALKIN,
+  })
   source: QueueSource;
 
-  @Column({ name: 'status', type: 'enum', enum: QueueStatus, default: QueueStatus.WAITING })
+  @Column({
+    name: 'status',
+    type: 'enum',
+    enum: QueueStatus,
+    default: QueueStatus.WAITING,
+  })
   status: QueueStatus;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at: Date;
 
   @Column({ name: 'called_at', type: 'timestamptz', nullable: true })
-  called_at?: Date | null;
+  called_at?: Date;
 
   @Column({ name: 'started_at', type: 'timestamptz', nullable: true })
-  started_at?: Date | null;
+  started_at?: Date;
 
   @Column({ name: 'service_ids', type: 'int', array: true, nullable: true })
-  service_ids?: number[] | null;
+  service_ids?: number[];
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
-  completed_at?: Date | null;
+  completed_at?: Date;
 }

@@ -6,7 +6,7 @@ export class HrShift {
   shift_id: number;
 
   @Column({ name: 'shift_name', length: 50, nullable: true })
-  shift_name?: string | null;
+  shift_name?: string;
 
   @Column({ name: 'start_time', type: 'time' })
   start_time: string;
@@ -15,10 +15,10 @@ export class HrShift {
   end_time: string;
 
   @Column({ name: 'break_start', type: 'time', nullable: true })
-  break_start?: string | null;
+  break_start?: string;
 
   @Column({ name: 'break_end', type: 'time', nullable: true })
-  break_end?: string | null;
+  break_end?: string;
 
   @Column({
     name: 'work_day_credit',

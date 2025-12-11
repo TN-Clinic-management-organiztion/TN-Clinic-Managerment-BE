@@ -1,9 +1,18 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { MedicalEncounter } from './medical_encounters.entity';
 import { RefService } from '../service/ref_services.entity';
 
 export enum EncounterClsStatus {
-  PENDING = 'PENDING', IN_PROGRESS = 'IN_PROGRESS', COMPLETED = 'COMPLETED',
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
 }
 
 @Entity('encounter_cls_tracking')
@@ -28,12 +37,17 @@ export class EncounterClsTracking {
   service?: RefService;
 
   // --- COLUMNS ---
-  @Column({ name: 'status', type: 'enum', enum: EncounterClsStatus, default: EncounterClsStatus.PENDING })
+  @Column({
+    name: 'status',
+    type: 'enum',
+    enum: EncounterClsStatus,
+    default: EncounterClsStatus.PENDING,
+  })
   status: EncounterClsStatus;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at: Date;
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
-  completed_at?: Date | null;
+  completed_at?: Date;
 }

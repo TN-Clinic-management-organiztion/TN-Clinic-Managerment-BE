@@ -9,8 +9,8 @@ export class SysRole {
   role_code: string;
 
   @Column({ name: 'role_name', length: 100, nullable: true })
-  role_name?: string | null;
+  role_name?: string ;
 
   @Column({ name: 'description', type: 'text', nullable: true })
-  description?: string | null;
+  description?: string ;
 }

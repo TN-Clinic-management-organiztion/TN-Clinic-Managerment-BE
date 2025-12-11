@@ -1,4 +1,11 @@
-import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { ServiceRequestItem } from './service_request_items.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 import { ServiceReportTemplate } from './service_report_templates.entity';
@@ -19,7 +26,7 @@ export class ServiceResult {
   approving_doctor_id?: string | null;
 
   @Column({ name: 'used_template_id', type: 'int', nullable: true })
-  used_template_id?: string | null;
+  used_template_id?: string;
 
   // --- RELATIONS ---
   @ManyToOne(() => ServiceRequestItem, { nullable: true })
@@ -40,10 +47,10 @@ export class ServiceResult {
 
   // --- COLUMNS ---
   @Column({ name: 'main_conclusion', type: 'text', nullable: true })
-  main_conclusion?: string | null;
+  main_conclusion?: string;
 
   @Column({ name: 'report_body_html', type: 'text', nullable: true })
-  report_body_html?: string | null;
+  report_body_html?: string;
 
   @Column({ name: 'is_abnormal', default: false })
   is_abnormal: boolean;
@@ -52,5 +59,5 @@ export class ServiceResult {
   result_time: Date;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
-  deleted_at?: Date | null;
+  deleted_at?: Date;
 }

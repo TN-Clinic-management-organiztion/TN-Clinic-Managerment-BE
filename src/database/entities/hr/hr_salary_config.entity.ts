@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
 @Entity('hr_salary_config')
@@ -23,9 +30,13 @@ export class HrSalaryConfig {
   @Column({ name: 'standard_days_per_month', type: 'smallint', default: 26 })
   standard_days_per_month: number;
 
-  @Column({ name: 'effective_date', type: 'date', default: () => 'CURRENT_DATE' })
+  @Column({
+    name: 'effective_date',
+    type: 'date',
+    default: () => 'CURRENT_DATE',
+  })
   effective_date: Date;
 
   @Column({ name: 'end_date', type: 'date', nullable: true })
-  end_date?: Date | null;
+  end_date?: Date;
 }

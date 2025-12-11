@@ -1,4 +1,10 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { DrugImportDetail } from './drug_import_details.entity';
 import { RefDrug } from './ref_drugs.entity';
 import { InventoryLocation } from './inventory_locations.entity';
@@ -20,7 +26,10 @@ export class DrugBatch {
 
   // --- RELATIONS ---
   @ManyToOne(() => DrugImportDetail, { nullable: false })
-  @JoinColumn({ name: 'import_detail_id', referencedColumnName: 'import_detail_id' })
+  @JoinColumn({
+    name: 'import_detail_id',
+    referencedColumnName: 'import_detail_id',
+  })
   import_detail: DrugImportDetail;
 
   @ManyToOne(() => RefDrug, { nullable: false })
@@ -33,7 +42,7 @@ export class DrugBatch {
 
   // --- COLUMNS ---
   @Column({ name: 'batch_number', length: 50, nullable: true })
-  batch_number?: string | null;
+  batch_number?: string;
 
   @Column({ name: 'expiry_date', type: 'date' })
   expiry_date: Date;
