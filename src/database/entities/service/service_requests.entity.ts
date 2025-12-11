@@ -20,24 +20,30 @@ export enum ServiceRequestPaymentStatus {
 @Entity('service_requests')
 export class ServiceRequest {
   @PrimaryGeneratedColumn('uuid', { name: 'request_id' })
-  requestId: string;
+  request_id: string;
 
+  // --- RAW FKs ---
+  @Column({ name: 'encounter_id', type: 'uuid', nullable: true })
+  encounter_id?: string | null;
+
+  @Column({ name: 'requesting_doctor_id', type: 'uuid', nullable: true })
+  requesting_doctor_id?: string | null;
+
+  // --- RELATIONS ---
   @ManyToOne(() => MedicalEncounter, { nullable: true })
-  @JoinColumn({ name: 'encounter_id', referencedColumnName: 'encounterId' })
-  encounterId?: MedicalEncounter;
+  @JoinColumn({ name: 'encounter_id', referencedColumnName: 'encounter_id' })
+  encounter?: MedicalEncounter;
 
   @ManyToOne(() => StaffProfile, { nullable: true })
   @JoinColumn({
     name: 'requesting_doctor_id',
-    referencedColumnName: 'staffId',
+    referencedColumnName: 'staff_id',
   })
-  requestingDoctorId?: StaffProfile;
+  requesting_doctor?: StaffProfile;
 
-  @CreateDateColumn({
-    name: 'created_at',
-    type: 'timestamptz',
-  })
-  createdAt: Date;
+  // --- COLUMNS ---
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at: Date;
 
   @Column({
     name: 'payment_status',
@@ -45,15 +51,11 @@ export class ServiceRequest {
     enum: ServiceRequestPaymentStatus,
     default: ServiceRequestPaymentStatus.UNPAID,
   })
-  paymentStatus: ServiceRequestPaymentStatus;
+  payment_status: ServiceRequestPaymentStatus;
 
   @Column({ name: 'notes', type: 'text', nullable: true })
   notes?: string;
 
-  @DeleteDateColumn({
-    name: 'deleted_at',
-    type: 'timestamptz',
-    nullable: true,
-  })
-  deletedAt?: Date;
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  deleted_at?: Date;
 }

@@ -11,30 +11,34 @@ import { RefDrug } from './ref_drugs.entity';
 @Entity('drug_import_details')
 export class DrugImportDetail {
   @PrimaryGeneratedColumn({ name: 'import_detail_id' })
-  importDetailId: number;
+  import_detail_id: number;
 
+  // --- RAW FKs ---
+  @Column({ name: 'import_id', type: 'int' })
+  import_id: number;
+
+  @Column({ name: 'drug_id', type: 'int' })
+  drug_id: number;
+
+  // --- RELATIONS ---
   @ManyToOne(() => DrugImport, { nullable: false })
-  @JoinColumn({ name: 'import_id', referencedColumnName: 'importId' })
-  importId: DrugImport;
+  @JoinColumn({ name: 'import_id', referencedColumnName: 'import_id' })
+  drug_import: DrugImport; // Đổi tên để tránh conflict từ khóa import
 
   @ManyToOne(() => RefDrug, { nullable: false })
-  @JoinColumn({ name: 'drug_id', referencedColumnName: 'drugId' })
-  drugId: RefDrug;
+  @JoinColumn({ name: 'drug_id', referencedColumnName: 'drug_id' })
+  drug: RefDrug;
 
+  // --- COLUMNS ---
   @Column({ name: 'batch_number', length: 50, nullable: true })
-  batchNumber?: string;
+  batch_number?: string;
 
   @Column({ name: 'expiry_date', type: 'date' })
-  expiryDate: Date;
+  expiry_date: Date;
 
   @Column({ name: 'quantity', type: 'int' })
   quantity: number;
 
-  @Column({
-    name: 'unit_price',
-    type: 'numeric',
-    precision: 10,
-    scale: 2,
-  })
-  unitPrice: string;
+  @Column({ name: 'unit_price', type: 'numeric', precision: 10, scale: 2 })
+  unit_price: string;
 }

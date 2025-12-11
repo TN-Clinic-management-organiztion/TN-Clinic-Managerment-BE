@@ -223,12 +223,13 @@ CREATE TABLE result_details_numeric (
 CREATE TABLE result_images (
     image_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     result_id UUID REFERENCES service_results(result_id),
+    public_id VARCHAR(255),
     original_image_url VARCHAR(500) NOT NULL,
     file_name VARCHAR(255),
     file_size BIGINT,
     mime_type VARCHAR(100),
     uploaded_at TIMESTAMPTZ DEFAULT NOW(),
-    uploaded_by UUID REFERENCES staff_profiles(staff_id)
+    uploaded_by UUID NOT NULL REFERENCES staff_profiles(staff_id)
 );
 
 CREATE TABLE annotation_projects (

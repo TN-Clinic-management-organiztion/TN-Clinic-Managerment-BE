@@ -18,16 +18,25 @@ export enum EncounterClsStatus {
 @Entity('encounter_cls_tracking')
 export class EncounterClsTracking {
   @PrimaryGeneratedColumn('uuid', { name: 'track_id' })
-  trackId: string;
+  track_id: string;
 
+  // --- RAW FKs ---
+  @Column({ name: 'encounter_id', type: 'uuid', nullable: true })
+  encounter_id?: string | null;
+
+  @Column({ name: 'service_id', type: 'int', nullable: true })
+  service_id?: number | null;
+
+  // --- RELATIONS ---
   @ManyToOne(() => MedicalEncounter, { nullable: true })
-  @JoinColumn({ name: 'encounter_id', referencedColumnName: 'encounterId' })
-  encounterId?: MedicalEncounter;
+  @JoinColumn({ name: 'encounter_id', referencedColumnName: 'encounter_id' })
+  encounter?: MedicalEncounter;
 
   @ManyToOne(() => RefService, { nullable: true })
-  @JoinColumn({ name: 'service_id', referencedColumnName: 'serviceId' })
-  serviceId?: RefService;
+  @JoinColumn({ name: 'service_id', referencedColumnName: 'service_id' })
+  service?: RefService;
 
+  // --- COLUMNS ---
   @Column({
     name: 'status',
     type: 'enum',
@@ -36,16 +45,9 @@ export class EncounterClsTracking {
   })
   status: EncounterClsStatus;
 
-  @CreateDateColumn({
-    name: 'created_at',
-    type: 'timestamptz',
-  })
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at: Date;
 
-  @Column({
-    name: 'completed_at',
-    type: 'timestamptz',
-    nullable: true,
-  })
-  completedAt?: Date;
+  @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
+  completed_at?: Date;
 }

@@ -1,6 +1,11 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { LoggerMiddleware } from 'src/common/middleware/logger.middleware';
+import { AiCoreModule } from 'src/modules/ai-core/ai-core.module';
+import { ParaclinicalModule } from 'src/modules/paraclinical/paraclinical.module';
+import { CloudinaryModule } from 'src/shared/cloudinary/cloudinary.module';
+import { ALL_ENTITIES } from 'src/shared/Tables/all_entities';
 
 @Module({
   imports: [
@@ -8,6 +13,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    TypeOrmModule.forFeature(ALL_ENTITIES),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -22,6 +28,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         synchronize: false
       })
     }),
+    CloudinaryModule,
+    ParaclinicalModule,
+    AiCoreModule
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

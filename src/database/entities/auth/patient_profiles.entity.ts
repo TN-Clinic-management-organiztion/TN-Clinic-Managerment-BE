@@ -16,37 +16,33 @@ export enum Gender {
 
 @Entity('patient_profiles')
 export class PatientProfile {
-  // PK + FK -> sys_users.user_id
   @PrimaryColumn('uuid', { name: 'patient_id' })
-  patientId: string;
+  patient_id: string;
 
+  // --- RELATIONS (Only PK-FK relationship here) ---
+  @OneToOne(() => SysUser)
+  @JoinColumn({ name: 'patient_id', referencedColumnName: 'user_id' })
+  user: SysUser;
+
+  // --- COLUMNS ---
   @Column({ name: 'full_name', length: 255 })
-  fullName: string;
+  full_name: string;
 
   @Column({ name: 'dob', type: 'date' })
   dob: Date;
 
-  @Column({
-    name: 'gender',
-    type: 'enum',
-    enum: Gender,
-  })
+  @Column({ name: 'gender', type: 'enum', enum: Gender })
   gender: Gender;
 
   @Column({ name: 'address', type: 'text', nullable: true })
   address?: string;
 
   @Column({ name: 'medical_history', type: 'text', nullable: true })
-  medicalHistory?: string;
+  medical_history?: string;
 
   @Column({ name: 'allergy_history', type: 'text', nullable: true })
-  allergyHistory?: string;
+  allergy_history?: string;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
-  deletedAt?: Date;
-
-  // patient_id -> sys_users.user_id
-  @OneToOne(() => SysUser)
-  @JoinColumn({ name: 'patient_id', referencedColumnName: 'userId' })
-  user: SysUser;
+  deleted_at?: Date;
 }

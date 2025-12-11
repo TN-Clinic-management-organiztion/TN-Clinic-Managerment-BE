@@ -16,22 +16,28 @@ export enum CounterTicketType {
 @Entity('queue_counters')
 export class QueueCounter {
   @PrimaryGeneratedColumn({ name: 'counter_id' })
-  counterId: number;
+  counter_id: number;
 
+  // --- RAW FK ---
+  @Column({ name: 'room_id', type: 'int' })
+  room_id: number;
+
+  // --- RELATION ---
   @ManyToOne(() => OrgRoom, { nullable: false })
-  @JoinColumn({ name: 'room_id', referencedColumnName: 'roomId' })
-  roomId: OrgRoom;
+  @JoinColumn({ name: 'room_id', referencedColumnName: 'room_id' })
+  room: OrgRoom;
 
+  // --- COLUMNS ---
   @Column({
     name: 'ticket_type',
     type: 'enum',
     enum: CounterTicketType,
   })
-  ticketType: CounterTicketType;
+  ticket_type: CounterTicketType;
 
   @Column({ name: 'last_number', type: 'int', default: 0 })
-  lastNumber: number;
+  last_number: number;
 
   @Column({ name: 'reset_date', type: 'date', default: () => 'CURRENT_DATE' })
-  resetDate: Date;
+  reset_date: Date;
 }

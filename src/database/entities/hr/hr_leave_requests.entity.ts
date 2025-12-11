@@ -14,7 +14,6 @@ export enum LeaveType {
   SICK = 'SICK',
   EMERGENCY = 'EMERGENCY',
 }
-
 export enum LeaveRequestStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
@@ -24,32 +23,36 @@ export enum LeaveRequestStatus {
 @Entity('hr_leave_requests')
 export class HrLeaveRequest {
   @PrimaryGeneratedColumn('uuid', { name: 'request_id' })
-  requestId: string;
+  request_id: string;
 
+  // --- RAW FKs ---
+  @Column({ name: 'staff_id', type: 'uuid' })
+  staff_id: string;
+
+  @Column({ name: 'decision_by', type: 'uuid', nullable: true })
+  decision_by?: string | null;
+
+  // --- RELATIONS ---
   @ManyToOne(() => StaffProfile, { nullable: false })
-  @JoinColumn({ name: 'staff_id', referencedColumnName: 'staffId' })
-  staffId: StaffProfile;
+  @JoinColumn({ name: 'staff_id', referencedColumnName: 'staff_id' })
+  staff: StaffProfile;
 
-  @Column({
-    name: 'leave_type',
-    type: 'enum',
-    enum: LeaveType,
-  })
-  leaveType: LeaveType;
+  @ManyToOne(() => StaffProfile, { nullable: true })
+  @JoinColumn({ name: 'decision_by', referencedColumnName: 'staff_id' })
+  approver?: StaffProfile; // Đổi tên relation thành approver
+
+  // --- COLUMNS ---
+  @Column({ name: 'leave_type', type: 'enum', enum: LeaveType })
+  leave_type: LeaveType;
 
   @Column({ name: 'start_date', type: 'date' })
-  startDate: Date;
+  start_date: Date;
 
   @Column({ name: 'end_date', type: 'date' })
-  endDate: Date;
+  end_date: Date;
 
-  @Column({
-    name: 'total_days',
-    type: 'numeric',
-    precision: 4,
-    scale: 1,
-  })
-  totalDays: string;
+  @Column({ name: 'total_days', type: 'numeric', precision: 4, scale: 1 })
+  total_days: string;
 
   @Column({
     name: 'status',
@@ -59,32 +62,18 @@ export class HrLeaveRequest {
   })
   status: LeaveRequestStatus;
 
-  @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'decision_by', referencedColumnName: 'staffId' })
-  decisionBy?: StaffProfile;
-
-  @Column({
-    name: 'decision_at',
-    type: 'timestamptz',
-    nullable: true,
-  })
-  decisionAt?: Date;
+  @Column({ name: 'decision_at', type: 'timestamptz', nullable: true })
+  decision_at?: Date;
 
   @Column({ name: 'reason', type: 'text' })
   reason: string;
 
   @Column({ name: 'contact_info', length: 100, nullable: true })
-  contactInfo?: string;
+  contact_info?: string;
 
-  @CreateDateColumn({
-    name: 'created_at',
-    type: 'timestamptz',
-  })
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at: Date;
 
-  @UpdateDateColumn({
-    name: 'updated_at',
-    type: 'timestamptz',
-  })
-  updatedAt: Date;
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updated_at: Date;
 }

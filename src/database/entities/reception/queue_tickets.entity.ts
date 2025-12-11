@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
 } from 'typeorm';
-
 import { MedicalEncounter } from '../clinical/medical_encounters.entity';
 import { OrgRoom } from '../auth/org_rooms.entity';
 
@@ -15,12 +14,10 @@ export enum QueueTicketType {
   CONSULTATION = 'CONSULTATION',
   SERVICE = 'SERVICE',
 }
-
 export enum QueueSource {
   ONLINE = 'ONLINE',
   WALKIN = 'WALKIN',
 }
-
 export enum QueueStatus {
   WAITING = 'WAITING',
   CALLED = 'CALLED',
@@ -32,31 +29,30 @@ export enum QueueStatus {
 @Entity('queue_tickets')
 export class QueueTicket {
   @PrimaryGeneratedColumn('uuid', { name: 'ticket_id' })
-  ticketId: string;
+  ticket_id: string;
 
+  // --- RAW FKs ---
+  @Column({ name: 'encounter_id', type: 'uuid', nullable: true })
+  encounter_id?: string | null;
+
+  @Column({ name: 'room_id', type: 'int' })
+  room_id: number;
+
+  // --- RELATIONS ---
   @ManyToOne(() => MedicalEncounter, { nullable: true })
-  @JoinColumn({
-    name: 'encounter_id',
-    referencedColumnName: 'encounterId',
-  })
-  encounterId?: MedicalEncounter;
+  @JoinColumn({ name: 'encounter_id', referencedColumnName: 'encounter_id' })
+  encounter?: MedicalEncounter;
 
   @ManyToOne(() => OrgRoom, { nullable: false })
-  @JoinColumn({
-    name: 'room_id',
-    referencedColumnName: 'roomId',
-  })
-  roomId: OrgRoom;
+  @JoinColumn({ name: 'room_id', referencedColumnName: 'room_id' })
+  room: OrgRoom;
 
-  @Column({
-    name: 'ticket_type',
-    type: 'enum',
-    enum: QueueTicketType,
-  })
-  ticketType: QueueTicketType;
+  // --- COLUMNS ---
+  @Column({ name: 'ticket_type', type: 'enum', enum: QueueTicketType })
+  ticket_type: QueueTicketType;
 
   @Column({ name: 'display_number', type: 'int' })
-  displayNumber: number;
+  display_number: number;
 
   @Column({
     name: 'source',
@@ -74,27 +70,18 @@ export class QueueTicket {
   })
   status: QueueStatus;
 
-  @CreateDateColumn({
-    name: 'created_at',
-    type: 'timestamptz',
-  })
-  createdAt: Date;
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  created_at: Date;
 
   @Column({ name: 'called_at', type: 'timestamptz', nullable: true })
-  calledAt?: Date;
+  called_at?: Date;
 
   @Column({ name: 'started_at', type: 'timestamptz', nullable: true })
-  startedAt?: Date;
+  started_at?: Date;
 
-  // INT ARRAY
-  @Column({
-    name: 'service_ids',
-    type: 'int',
-    array: true,
-    nullable: true,
-  })
-  serviceIds?: number[];
+  @Column({ name: 'service_ids', type: 'int', array: true, nullable: true })
+  service_ids?: number[];
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
-  completedAt?: Date;
+  completed_at?: Date;
 }

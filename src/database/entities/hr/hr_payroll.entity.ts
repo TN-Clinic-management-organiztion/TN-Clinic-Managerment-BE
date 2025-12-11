@@ -17,17 +17,18 @@ export enum PayrollStatus {
 }
 
 @Entity('hr_payroll')
-@Unique('uk_staff_payroll_month', ['staffId', 'payrollMonth'])
+// Lưu ý: Update tên thuộc tính trong Unique constraint
+@Unique('uk_staff_payroll_month', ['staff_id', 'payroll_month'])
 export class HrPayroll {
   @PrimaryGeneratedColumn('uuid', { name: 'payroll_id' })
-  payrollId: string;
+  payroll_id: string;
 
   @ManyToOne(() => StaffProfile, { nullable: false })
-  @JoinColumn({ name: 'staff_id', referencedColumnName: 'staffId' })
-  staffId: StaffProfile;
+  @JoinColumn({ name: 'staff_id', referencedColumnName: 'staff_id' })
+  staff_id: StaffProfile;
 
   @Column({ name: 'payroll_month', type: 'date' })
-  payrollMonth: Date;
+  payroll_month: Date;
 
   @Column({
     name: 'work_days',
@@ -36,7 +37,7 @@ export class HrPayroll {
     scale: 2,
     default: 0,
   })
-  workDays: string;
+  work_days: string;
 
   @Column({
     name: 'leave_days',
@@ -45,7 +46,7 @@ export class HrPayroll {
     scale: 2,
     default: 0,
   })
-  leaveDays: string;
+  leave_days: string;
 
   @Column({
     name: 'total_paid_days',
@@ -53,7 +54,7 @@ export class HrPayroll {
     precision: 4,
     scale: 2,
   })
-  totalPaidDays: string;
+  total_paid_days: string;
 
   @Column({
     name: 'overtime_hours',
@@ -62,7 +63,7 @@ export class HrPayroll {
     scale: 2,
     default: 0,
   })
-  overtimeHours: string;
+  overtime_hours: string;
 
   @Column({
     name: 'base_salary',
@@ -70,7 +71,7 @@ export class HrPayroll {
     precision: 10,
     scale: 2,
   })
-  baseSalary: string;
+  base_salary: string;
 
   @Column({
     name: 'actual_salary',
@@ -78,7 +79,7 @@ export class HrPayroll {
     precision: 10,
     scale: 2,
   })
-  actualSalary: string;
+  actual_salary: string;
 
   @Column({
     name: 'overtime_salary',
@@ -87,7 +88,7 @@ export class HrPayroll {
     scale: 2,
     default: 0,
   })
-  overtimeSalary: string;
+  overtime_salary: string;
 
   @Column({
     name: 'total_allowances',
@@ -96,7 +97,7 @@ export class HrPayroll {
     scale: 2,
     default: 0,
   })
-  totalAllowances: string;
+  total_allowances: string;
 
   @Column({
     name: 'total_bonus',
@@ -105,7 +106,7 @@ export class HrPayroll {
     scale: 2,
     default: 0,
   })
-  totalBonus: string;
+  total_bonus: string;
 
   @Column({
     name: 'total_penalty',
@@ -114,7 +115,7 @@ export class HrPayroll {
     scale: 2,
     default: 0,
   })
-  totalPenalty: string;
+  total_penalty: string;
 
   @Column({
     name: 'net_salary',
@@ -122,7 +123,7 @@ export class HrPayroll {
     precision: 10,
     scale: 2,
   })
-  netSalary: string;
+  net_salary: string;
 
   @Column({
     name: 'status',
@@ -133,22 +134,30 @@ export class HrPayroll {
   status: PayrollStatus;
 
   @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'approved_by', referencedColumnName: 'staffId' })
-  approvedBy?: StaffProfile;
+  @JoinColumn({ name: 'approved_by', referencedColumnName: 'staff_id' })
+  approved_by?: StaffProfile;
 
   @Column({
     name: 'paid_at',
     type: 'timestamptz',
     nullable: true,
   })
-  paidAt?: Date;
+  paid_at?: Date;
 
   @CreateDateColumn({
     name: 'calculated_at',
     type: 'timestamptz',
   })
-  calculatedAt: Date;
+  calculated_at: Date;
 
   @Column({ name: 'notes', type: 'text', nullable: true })
   notes?: string;
+
+  @ManyToOne(() => StaffProfile, { nullable: false })
+  @JoinColumn({ name: 'staff_id', referencedColumnName: 'staff_id' })
+  staff: StaffProfile;
+
+  @ManyToOne(() => StaffProfile, { nullable: true })
+  @JoinColumn({ name: 'approved_by', referencedColumnName: 'staff_id' })
+  approver?: StaffProfile;
 }
