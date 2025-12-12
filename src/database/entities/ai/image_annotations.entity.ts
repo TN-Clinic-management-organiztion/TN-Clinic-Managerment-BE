@@ -14,9 +14,11 @@ export enum AnnotationSource {
   HUMAN = 'HUMAN',
 }
 export enum AnnotationStatus {
-  DRAFT = 'DRAFT',
-  REVIEWED = 'REVIEWED',
-  APPROVED = 'APPROVED',
+  IN_PROGRESS = 'IN_PROGRESS', // Đang làm (Draft cũ)
+  SUBMITTED = 'SUBMITTED', // Đã nộp (Chờ duyệt)
+  APPROVED = 'APPROVED', // Đã duyệt
+  REJECTED = 'REJECTED', // Bị từ chối
+  DEPRECATED = 'DEPRECATED', // Lỗi thời
 }
 
 @Entity('image_annotations')
@@ -74,16 +76,21 @@ export class ImageAnnotation {
   reviewed_at?: Date;
 
   @Column({ name: 'approved_at', type: 'timestamptz', nullable: true })
-  approved_at?: Date;
+  approved_at?: Date | null;
 
   @Column({
-    name: 'annotation_status',
     type: 'enum',
     enum: AnnotationStatus,
-    default: AnnotationStatus.DRAFT,
+    default: AnnotationStatus.IN_PROGRESS,
   })
   annotation_status: AnnotationStatus;
 
+  @Column({ name: 'rejection_reason', type: 'text', nullable: true })
+  rejection_reason?: string | null;
+
+    @Column({ name: 'deprecation_reason', type: 'text', nullable: true })
+  deprecation_reason?: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
-  created_at: Date;
+  created_at: Date | null;
 }
