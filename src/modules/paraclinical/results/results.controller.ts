@@ -14,65 +14,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class ResultsController {
   constructor(private readonly resultsService: ResultsService) {}
 
-  // @Post()
-  // @ApiOperation({ summary: 'Tạo ảnh kết quả mới' })
-  // @ApiResponse({ type: ResultImageResponseDto })
-  // async create(
-  //   @Body() createResultImageDto: CreateResultImageDto
-  // ): Promise<ResultImageResponseDto> {
-  //   return this.resultImagesService.create(createResultImageDto);
-  // }
-
-  // @Post('bulk')
-  // @ApiOperation({ summary: 'Upload nhiều ảnh cùng lúc' })
-  // async bulkCreate(
-  //   @Body() bulkUploadDto: BulkUploadResultImagesDto
-  // ): Promise<ResultImageResponseDto[]> {
-  //   return this.resultImagesService.bulkCreate(bulkUploadDto.images);
-  // }
-
-  // @Get()
-  // @ApiOperation({ summary: 'Lấy danh sách ảnh với filter' })
-  // async findAll(
-  //   @Query() queryDto: QueryResultImageDto
-  // ): Promise<{
-  //   data: ResultImageResponseDto[];
-  //   total: number;
-  //   page: number;
-  //   limit: number;
-  // }> {
-  //   return this.resultImagesService.findAll(queryDto);
-  // }
-
-  // @Get(':id')
-  // @ApiOperation({ summary: 'Lấy ảnh theo ID' })
-  // async findOne(@Param('id') id: string): Promise<ResultImageResponseDto> {
-  //   return this.resultImagesService.findOne(id);
-  // }
-
-  // @Get('result/:resultId')
-  // @ApiOperation({ summary: 'Lấy tất cả ảnh của một kết quả' })
-  // async findByResultId(
-  //   @Param('resultId') resultId: string
-  // ): Promise<ResultImageResponseDto[]> {
-  //   return this.resultImagesService.findByResultId(resultId);
-  // }
-
-  // @Patch(':id')
-  // @ApiOperation({ summary: 'Cập nhật thông tin ảnh' })
-  // async update(
-  //   @Param('id') id: string,
-  //   @Body() updateResultImageDto: UpdateResultImageDto
-  // ): Promise<ResultImageResponseDto> {
-  //   return this.resultImagesService.update(id, updateResultImageDto);
-  // }
-
-  // @Delete(':id')
-  // @ApiOperation({ summary: 'Xóa ảnh' })
-  // async remove(@Param('id') id: string): Promise<void> {
-  //   return this.resultImagesService.remove(id);
-  // }
-
   @Post('images')
   async uploadResultImage(@Body() dto: CreateResultImageDto) {
     return await this.resultsService.createResultImage(dto);

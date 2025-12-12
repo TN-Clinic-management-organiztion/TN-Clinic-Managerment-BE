@@ -263,13 +263,18 @@ CREATE TABLE image_annotations (
     reviewed_at TIMESTAMPTZ,
 	approved_by UUID REFERENCES staff_profiles(staff_id),
     approved_at TIMESTAMPTZ,
-	annotation_status VARCHAR(20) DEFAULT 'DRAFT'
+	annotation_status VARCHAR(20) DEFAULT 'IN_PROGRESS'
         CHECK (annotation_status IN (
-            'DRAFT',
-            'REVIEWED',
-            'APPROVED'
+            'IN_PROGRESS',
+            'SUBMITTED',
+            'APPROVED',
+            'REJECTED',
+            'DEPRECATED'
         )),
+    rejection_reason TEXT,
+    deprecation_reason TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
+    
 ); -- Done
 
 CREATE TABLE annotation_project_images (
