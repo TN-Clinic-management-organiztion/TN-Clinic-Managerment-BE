@@ -8,19 +8,20 @@ CREATE TABLE org_rooms (
 
 CREATE TABLE sys_roles (
     role_id SERIAL PRIMARY KEY,
-	  role_code VARCHAR(50) UNIQUE NOT NULL,
+    role_code VARCHAR(50) UNIQUE NOT NULL,
     role_name VARCHAR(100),
     description TEXT
 ); -- Done
 
 CREATE TABLE sys_users (
     user_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    username VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    username VARCHAR(100) UNIQUE,
+    password VARCHAR(255),
     email VARCHAR(150),
     phone VARCHAR(20),
     cccd VARCHAR(12) UNIQUE,
     is_active BOOLEAN DEFAULT TRUE,
+    refresh_token_hash VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
 ); -- Done

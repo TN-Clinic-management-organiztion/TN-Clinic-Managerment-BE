@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerMiddleware } from 'src/common/middleware/logger.middleware';
 import { AiCoreModule } from 'src/modules/ai-core/ai-core.module';
+import { IamModule } from 'src/modules/iam/iam.module';
 import { ParaclinicalModule } from 'src/modules/paraclinical/paraclinical.module';
 import { CloudinaryModule } from 'src/shared/cloudinary/cloudinary.module';
 import { ALL_ENTITIES } from 'src/shared/Tables/all_entities';
@@ -30,7 +31,8 @@ import { ALL_ENTITIES } from 'src/shared/Tables/all_entities';
     }),
     CloudinaryModule,
     ParaclinicalModule,
-    AiCoreModule
+    AiCoreModule,
+    IamModule
   ],
 })
 export class AppModule implements NestModule {
