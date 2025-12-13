@@ -1,0 +1,91 @@
+Staff API:
+POST   /staff                      - Tạo staff (Admin only)
+PUT    /staff/:id                  - Cập nhật staff (có thể thêm CCCD)
+{
+  "full_name": "Nguyen Van B",
+  "email": "staff@gmail.com",
+  "phone": "0909123456",
+  "cccd": "123456789012",
+  "role_id": 2,
+  "assigned_room_id": 1,
+  "specialty_id": 4,
+  "signature_url": "https://cdn.example.com/signature.png"
+}
+
+
+GET    /staff/all                      - Danh sách staff
+GET    /staff/:id                  - Chi tiết staff
+{
+    "statusCode": 200,
+    "success": true,
+    "message": "Success",
+    "data": {
+        "staff_id": "344b6693-0641-4058-a370-29276571f1d5",
+        "full_name": "BS.CKI Nguyễn Văn Hùng",
+        "username": "bs_hung",
+        "email": "hung.bs@sys.com",
+        "phone": "0901000002",
+        "cccd": "001090000002",
+        "role": "DOCTOR",
+        "role_name": "Bác sĩ",
+        "assigned_room_id": 3,
+        "assigned_room_name": "Phòng Khám Nội Tổng Quát",
+        "specialty_id": 1,
+        "specialty_room": "Nội Khoa"
+    }
+}
+
+Patients API:
+POST   /patients                   - Tạo patient (CCCD optional)
+{
+  "cccd": "123456789012", // Có thể có hoặc không
+  "full_name": "Nguyễn Văn A",
+  "dob": "1995-08-20",
+  "gender": "NAM",
+  "phone": "0909123456",
+  "address": "Quận 1, TP.HCM",
+  "medical_history": "Tiểu đường type 2",
+  "allergy_history": "Dị ứng penicillin"
+}
+
+PUT    /patients/:id/cccd          - Cập nhật CCCD cho patient
+{
+  "cccd": "987654321098" // update cccd
+}
+{
+  "cccd": "" // delete cccd
+}
+
+PUT    /patients/:id               - Cập nhật thông tin patient
+{
+  "phone": "0988777666"
+}
+{
+  "cccd": "111122223333",
+  "address": "Quận 7, TP.HCM"
+}
+
+{
+  "full_name": "Nguyễn Văn B",
+  "dob": "1996-01-15",
+  "gender": "KHAC"
+}
+
+{
+  "medical_history": "Cao huyết áp",
+  "allergy_history": "Dị ứng hải sản"
+}
+
+GET    /patients/search            - Tìm kiếm patient (phone, name, CCCD)
+GET /patients/search?phone=0909
+GET /patients/search?cccd=1234
+GET /patients/search?phone=0909&full_name=an
+
+
+GET    /patients/phone/:phone      - Tìm patient bằng số điện thoại
+GET    /patients/:id               - Lấy chi tiết patient
+
+Auth (Authentication only)
+POST   /auth/login                 - Đăng nhập
+POST   /auth/refresh               - Refresh token
+POST   /auth/logout                - Đăng xuất

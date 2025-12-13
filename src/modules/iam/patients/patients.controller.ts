@@ -1,0 +1,77 @@
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Put,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { PatientsService } from 'src/modules/iam/patients/patients.service';
+import { CreatePatientDto } from './dto/create-patient.dto';
+import { UpdatePatientDto } from './dto/update-patient.dto';
+import { PatientSearchDto } from './dto/patient-search.dto';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { RolesGuard } from 'src/common/guards/role.guard';
+import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+
+@Controller('patients')
+// @UseGuards(RolesGuard)
+export class PatientsController {
+  constructor(private readonly patientsService: PatientsService) {}
+
+  @Post()
+  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST') // Admin, thu ngân, lễ tân
+  @HttpCode(HttpStatus.CREATED)
+  async create(
+    @Body() createPatientDto: CreatePatientDto,
+    // @CurrentUser('user_id') staffId: string,
+  ) {
+    // return this.patientsService.create(createPatientDto, staffId);
+    return this.patientsService.create(createPatientDto);
+  }
+
+  @Put(':id/cccd')
+  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST')
+  @HttpCode(HttpStatus.OK)
+  async updateCCCD(
+    @Param('id') patientId: string,
+    @Body() body: { cccd: string },
+  ) {
+    return this.patientsService.updateCCCD(patientId, body.cccd);
+  }
+
+  @Put(':id')
+  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST')
+  @HttpCode(HttpStatus.OK)
+  async update(
+    @Param('id') patientId: string,
+    @Body() updatePatientDto: UpdatePatientDto,
+  ) {
+    return this.patientsService.update(patientId, updatePatientDto);
+  }
+
+  @Get('search')
+  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST')
+  @HttpCode(HttpStatus.OK)
+  async search(@Query() searchDto: PatientSearchDto) {
+    return this.patientsService.search(searchDto);
+  }
+
+  @Get('phone/:phone')
+  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST')
+  @HttpCode(HttpStatus.OK)
+  async getByPhone(@Param('phone') phone: string) {
+    return this.patientsService.getByPhone(phone);
+  }
+
+  @Get(':id')
+  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST')
+  @HttpCode(HttpStatus.OK)
+  async findOne(@Param('id') patientId: string) {
+    return this.patientsService.findOne(patientId);
+  }
+}
