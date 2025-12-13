@@ -10,7 +10,7 @@ export class RefIcd10 {
   parent_code?: string;
 
   // --- RELATIONS ---
-  @ManyToOne(() => RefIcd10, { nullable: true })
+  @ManyToOne(() => RefIcd10, { nullable: true, onUpdate: 'CASCADE', onDelete: 'NO ACTION' })
   @JoinColumn({ name: 'parent_code', referencedColumnName: 'icd_code' })
   parent?: RefIcd10;
 

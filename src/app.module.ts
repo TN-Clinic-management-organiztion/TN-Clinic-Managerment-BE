@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerMiddleware } from 'src/common/middleware/logger.middleware';
 import { AiCoreModule } from 'src/modules/ai-core/ai-core.module';
+import { ClinicalModule } from 'src/modules/clinical/clinical.module';
 import { IamModule } from 'src/modules/iam/iam.module';
 import { ParaclinicalModule } from 'src/modules/paraclinical/paraclinical.module';
 import { SystemModule } from 'src/modules/system/system.module';
@@ -34,7 +35,8 @@ import { ALL_ENTITIES } from 'src/shared/Tables/all_entities';
     ParaclinicalModule,
     AiCoreModule,
     IamModule,
-    SystemModule
+    SystemModule,
+    ClinicalModule
   ],
 })
 export class AppModule implements NestModule {
