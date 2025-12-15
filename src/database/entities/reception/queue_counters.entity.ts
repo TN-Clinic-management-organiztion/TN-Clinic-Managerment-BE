@@ -6,12 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { OrgRoom } from '../auth/org_rooms.entity';
-
-export enum CounterTicketType {
-  REGISTRATION = 'REGISTRATION',
-  CONSULTATION = 'CONSULTATION',
-  SERVICE = 'SERVICE',
-}
+import { QueueTicketType } from './queue_tickets.entity';
 
 @Entity('queue_counters')
 export class QueueCounter {
@@ -31,9 +26,9 @@ export class QueueCounter {
   @Column({
     name: 'ticket_type',
     type: 'enum',
-    enum: CounterTicketType,
+    enum: QueueTicketType,
   })
-  ticket_type: CounterTicketType;
+  ticket_type: QueueTicketType;
 
   @Column({ name: 'last_number', type: 'int', default: 0 })
   last_number: number;
