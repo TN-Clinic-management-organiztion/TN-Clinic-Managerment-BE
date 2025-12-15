@@ -97,6 +97,7 @@ CREATE TABLE medical_encounters (
 
 CREATE TABLE queue_tickets (
     ticket_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    appointment_id UUID REFERENCES online_appointments(appointment_id),
     encounter_id UUID REFERENCES medical_encounters(encounter_id),
     room_id INT NOT NULL REFERENCES org_rooms(room_id),
     ticket_type VARCHAR(20) NOT NULL CHECK (ticket_type IN ('REGISTRATION', 'CONSULTATION', 'SERVICE')),

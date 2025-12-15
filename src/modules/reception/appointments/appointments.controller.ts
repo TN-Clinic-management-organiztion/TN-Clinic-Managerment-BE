@@ -22,6 +22,7 @@ import {
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
+  // Tạo lịch hẹn online + tự động tạo ticket REGISTRATION cho CASHIER để xếp hàng check-in.
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: CreateAppointmentDto) {
