@@ -1,4 +1,3 @@
-
 import {
   Injectable,
   NotFoundException,
@@ -6,7 +5,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, EntityManager } from 'typeorm';
-import { OnlineAppointment, AppointmentStatus } from '../../../database/entities/reception/online_appointments.entity';
+import {
+  OnlineAppointment,
+  AppointmentStatus,
+} from '../../../database/entities/reception/online_appointments.entity';
 import {
   CreateAppointmentDto,
   UpdateAppointmentDto,
@@ -136,9 +138,7 @@ export class AppointmentsService {
     const now = new Date();
 
     if (appointmentDateTime < now) {
-      throw new BadRequestException(
-        'Cannot create appointment in the past',
-      );
+      throw new BadRequestException('Cannot create appointment in the past');
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -158,32 +158,15 @@ export class AppointmentsService {
         await this.ensureDoctor(manager, dto.desired_doctor_id);
       }
 
-      const appointmentEntity = manager.getRepository(OnlineAppointment).create({
-        ...dto,
-        appointment_date: new Date(dto.appointment_date),
-        status: AppointmentStatus.PENDING,
-      });
+      const appointmentEntity = manager
+        .getRepository(OnlineAppointment)
+        .create({
+          ...dto,
+          appointment_date: new Date(dto.appointment_date),
+          status: AppointmentStatus.PENDING,
+        });
 
       const savedAppointment = await manager.save(appointmentEntity);
-
-      const cashierRoomId = await this.findCashierRoomId(manager);
-      const displayNumber = await this.incrementCounter(
-        manager,
-        cashierRoomId,
-        QueueTicketType.REGISTRATION,
-      );
-
-      const ticket = manager.getRepository(QueueTicket).create({
-        appointment_id: savedAppointment.appointment_id,
-        room_id: cashierRoomId,
-        ticket_type: QueueTicketType.REGISTRATION,
-        display_number: displayNumber,
-        source: QueueSource.ONLINE,
-        status: QueueStatus.WAITING,
-        encounter_id: null,
-      });
-
-      await manager.save(ticket);
 
       await queryRunner.commitTransaction();
 
@@ -309,47 +292,186 @@ export class AppointmentsService {
     return await this.appointmentRepo.save(appointment);
   }
 
-  async checkIn(id: string): Promise<OnlineAppointment> {
-    const appointment = await this.appointmentRepo.findOne({
-      where: { appointment_id: id },
-    });
+  async confirm(id: string) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!appointment) {
-      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    try {
+      const manager = queryRunner.manager;
+
+      const appointment = await manager
+        .getRepository(OnlineAppointment)
+        .findOne({
+          where: { appointment_id: id },
+        });
+
+      if (!appointment || appointment.deleted_at) {
+        throw new NotFoundException(`Appointment with ID ${id} not found`);
+      }
+
+      if (
+        appointment.status === AppointmentStatus.CANCELLED ||
+        appointment.status === AppointmentStatus.COMPLETED ||
+        appointment.status === AppointmentStatus.NO_SHOW
+      ) {
+        throw new BadRequestException(
+          `Cannot confirm appointment in status ${appointment.status}`,
+        );
+      }
+
+      // Nếu đã có ticket thì không tạo nữa (idempotent)
+      const existingTicket = await manager.getRepository(QueueTicket).findOne({
+        where: { appointment_id: id },
+      });
+
+      if (!existingTicket) {
+        const cashierRoomId = await this.findCashierRoomId(manager);
+
+        const displayNumber = await this.incrementCounter(
+          manager,
+          cashierRoomId,
+          QueueTicketType.REGISTRATION,
+        );
+
+        const ticket = manager.getRepository(QueueTicket).create({
+          appointment_id: id,
+          room_id: cashierRoomId,
+          ticket_type: QueueTicketType.REGISTRATION,
+          display_number: displayNumber,
+          source: QueueSource.ONLINE,
+          status: QueueStatus.WAITING,
+          encounter_id: null,
+        });
+
+        await manager.save(ticket);
+      }
+
+      appointment.status = AppointmentStatus.CONFIRMED;
+      await manager.save(appointment);
+
+      await queryRunner.commitTransaction();
+      const ticket = await this.dataSource.getRepository(QueueTicket).findOne({
+        where: { appointment_id: id },
+        relations: ['room', 'appointment'],
+      });
+
+      return {
+        appointment: await this.findOne(id),
+        ticket,
+      };
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      throw e;
+    } finally {
+      await queryRunner.release();
     }
-
-    appointment.status = AppointmentStatus.CONFIRMED;
-    return await this.appointmentRepo.save(appointment);
   }
 
-  async cancel(id: string): Promise<OnlineAppointment> {
-    const appointment = await this.appointmentRepo.findOne({
-      where: { appointment_id: id },
-    });
+  async cancel(id: string) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!appointment) {
-      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    try {
+      const manager = queryRunner.manager;
+
+      const appointment = await manager
+        .getRepository(OnlineAppointment)
+        .findOne({
+          where: { appointment_id: id },
+        });
+
+      if (!appointment || appointment.deleted_at) {
+        throw new NotFoundException(`Appointment with ID ${id} not found`);
+      }
+
+      if (appointment.status === AppointmentStatus.COMPLETED) {
+        throw new BadRequestException('Cannot cancel completed appointment');
+      }
+
+      // cập nhật ticket nếu có
+      const ticket = await manager.getRepository(QueueTicket).findOne({
+        where: { appointment_id: id },
+      });
+
+      if (ticket) {
+        if (ticket.status === QueueStatus.COMPLETED) {
+          throw new BadRequestException(
+            'Cannot cancel: ticket already completed',
+          );
+        }
+        ticket.status = QueueStatus.SKIPPED;
+        ticket.completed_at = new Date();
+        await manager.save(ticket);
+      }
+
+      appointment.status = AppointmentStatus.CANCELLED;
+      await manager.save(appointment);
+
+      await queryRunner.commitTransaction();
+      return this.findOne(id);
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      throw e;
+    } finally {
+      await queryRunner.release();
     }
-
-    appointment.status = AppointmentStatus.CANCELLED;
-    return await this.appointmentRepo.save(appointment);
   }
 
-  async markNoShow(id: string): Promise<OnlineAppointment> {
-    const appointment = await this.appointmentRepo.findOne({
-      where: { appointment_id: id },
-    });
+  async markNoShow(id: string) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!appointment) {
-      throw new NotFoundException(`Appointment with ID ${id} not found`);
+    try {
+      const manager = queryRunner.manager;
+
+      const appointment = await manager
+        .getRepository(OnlineAppointment)
+        .findOne({
+          where: { appointment_id: id },
+        });
+
+      if (!appointment || appointment.deleted_at) {
+        throw new NotFoundException(`Appointment with ID ${id} not found`);
+      }
+
+      if (
+        appointment.status === AppointmentStatus.CANCELLED ||
+        appointment.status === AppointmentStatus.COMPLETED
+      ) {
+        throw new BadRequestException(
+          `Cannot mark no-show for status ${appointment.status}`,
+        );
+      }
+
+      const ticket = await manager.getRepository(QueueTicket).findOne({
+        where: { appointment_id: id },
+      });
+
+      if (ticket) {
+        if (ticket.status === QueueStatus.COMPLETED) {
+          throw new BadRequestException(
+            'Cannot no-show: ticket already completed',
+          );
+        }
+        ticket.status = QueueStatus.SKIPPED;
+        ticket.completed_at = new Date();
+        await manager.save(ticket);
+      }
+
+      appointment.status = AppointmentStatus.NO_SHOW;
+      await manager.save(appointment);
+
+      await queryRunner.commitTransaction();
+      return this.findOne(id);
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      throw e;
+    } finally {
+      await queryRunner.release();
     }
-
-    if (appointment.status === AppointmentStatus.CANCELLED) {
-      throw new BadRequestException('Cannot mark cancelled appointments');
-    }
-
-    appointment.status = AppointmentStatus.NO_SHOW;
-    return await this.appointmentRepo.save(appointment);
   }
 
   async getTodayAppointments(roomId?: number) {

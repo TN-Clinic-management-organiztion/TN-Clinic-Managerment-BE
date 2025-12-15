@@ -5,6 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  Index,
 } from 'typeorm';
 import { MedicalEncounter } from '../clinical/medical_encounters.entity';
 import { OrgRoom } from '../auth/org_rooms.entity';
@@ -26,7 +27,11 @@ export enum QueueStatus {
   COMPLETED = 'COMPLETED',
   SKIPPED = 'SKIPPED',
 }
-
+@Index(
+  'uq_queue_ticket_appointment',
+  ['appointment_id'],
+  { unique: true, where: `"appointment_id" IS NOT NULL` } // Postgres partial unique index
+)
 @Entity('queue_tickets')
 export class QueueTicket {
   @PrimaryGeneratedColumn('uuid', { name: 'ticket_id' })

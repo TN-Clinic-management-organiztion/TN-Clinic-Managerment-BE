@@ -4,10 +4,12 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { OrgRoom } from '../auth/org_rooms.entity';
 import { QueueTicketType } from './queue_tickets.entity';
 
+@Index('uq_counter_room_type_day', ['room_id', 'ticket_type', 'reset_date'], { unique: true })
 @Entity('queue_counters')
 export class QueueCounter {
   @PrimaryGeneratedColumn({ name: 'counter_id' })
