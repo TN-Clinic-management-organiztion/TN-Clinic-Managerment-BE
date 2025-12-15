@@ -1,5 +1,5 @@
-import { DrugInteractionSeverity } from './../../database/entities/pharmacy/drug_interactions.entity';
-import { PageQueryDto } from './../_shared/pagination';
+import { DrugInteractionSeverity } from '../../../../database/entities/pharmacy/drug_interactions.entity';
+import { PageQueryDto } from '../../../_shared/pagination';
 import {
   IsEnum,
   IsInt,
