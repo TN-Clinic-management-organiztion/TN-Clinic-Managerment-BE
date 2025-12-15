@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { RefServiceCategory } from './ref_service_categories.entity';
 
-export enum ServiceResultInputType {
+export enum ResultInputType {
   NUMERIC = 'NUMERIC', // Chỉ số số (lab)
   TEXT = 'TEXT', // Chỉ kết luận text
   NUMERIC_AND_TEXT = 'NUMERIC_AND_TEXT', // Số + text
@@ -44,8 +44,8 @@ export class RefService {
   @Column({
     name: 'result_input_type',
     type: 'enum',
-    enum: ServiceResultInputType,
+    enum: ResultInputType,
     nullable: true,
   })
-  result_input_type?: ServiceResultInputType;
+  result_input_type?: ResultInputType;
 }

@@ -10,7 +10,7 @@ import {
 import { MedicalEncounter } from '../clinical/medical_encounters.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
-export enum ServiceRequestPaymentStatus {
+export enum PaymentStatus {
   UNPAID = 'UNPAID',
   PARTIALLY_PAID = 'PARTIALLY_PAID',
   PAID = 'PAID',
@@ -48,10 +48,10 @@ export class ServiceRequest {
   @Column({
     name: 'payment_status',
     type: 'enum',
-    enum: ServiceRequestPaymentStatus,
-    default: ServiceRequestPaymentStatus.UNPAID,
+    enum: PaymentStatus,
+    default: PaymentStatus.UNPAID,
   })
-  payment_status: ServiceRequestPaymentStatus;
+  payment_status: PaymentStatus;
 
   @Column({ name: 'notes', type: 'text', nullable: true })
   notes?: string;

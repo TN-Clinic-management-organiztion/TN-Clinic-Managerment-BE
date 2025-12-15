@@ -9,6 +9,7 @@ import {
 import { ServiceRequestItem } from './service_request_items.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 import { ServiceReportTemplate } from './service_report_templates.entity';
+import { DataSource } from 'typeorm';
 
 @Entity('service_results')
 export class ServiceResult {
@@ -26,7 +27,7 @@ export class ServiceResult {
   approving_doctor_id?: string | null;
 
   @Column({ name: 'used_template_id', type: 'int', nullable: true })
-  used_template_id?: string;
+  used_template_id?: number | null;
 
   // --- RELATIONS ---
   @ManyToOne(() => ServiceRequestItem, { nullable: true })

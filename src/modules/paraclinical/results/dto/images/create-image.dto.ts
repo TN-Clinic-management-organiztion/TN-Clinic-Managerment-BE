@@ -1,31 +1,31 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString, IsUrl, IsUUID } from 'class-validator';
 
 export class CreateResultImageDto {
-  @IsUUID()
   @IsOptional()
+  @IsUUID()
   result_id?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   public_id?: string;
 
+  @IsNotEmpty()
   @IsUrl()
-  @IsOptional()
-  original_image_url?: string;
+  original_image_url: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   file_name?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   file_size?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   mime_type?: string;
 
-  @IsUUID()
   @IsNotEmpty()
+  @IsUUID()
   uploaded_by: string;
 }

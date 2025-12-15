@@ -8,7 +8,7 @@ import {
 import { ServiceRequest } from './service_requests.entity';
 import { RefService } from './ref_services.entity';
 
-export enum ServiceRequestItemStatus {
+export enum ServiceItemStatus {
   PENDING = 'PENDING',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
@@ -40,8 +40,8 @@ export class ServiceRequestItem {
   @Column({
     name: 'status',
     type: 'enum',
-    enum: ServiceRequestItemStatus,
-    default: ServiceRequestItemStatus.PENDING,
+    enum: ServiceItemStatus,
+    default: ServiceItemStatus.PENDING,
   })
-  status: ServiceRequestItemStatus;
+  status: ServiceItemStatus;
 }
