@@ -4,15 +4,12 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { OrgRoom } from '../auth/org_rooms.entity';
+import { QueueTicketType } from './queue_tickets.entity';
 
-export enum CounterTicketType {
-  REGISTRATION = 'REGISTRATION',
-  CONSULTATION = 'CONSULTATION',
-  SERVICE = 'SERVICE',
-}
-
+@Index('uq_counter_room_type_day', ['room_id', 'ticket_type', 'reset_date'], { unique: true })
 @Entity('queue_counters')
 export class QueueCounter {
   @PrimaryGeneratedColumn({ name: 'counter_id' })
@@ -31,9 +28,9 @@ export class QueueCounter {
   @Column({
     name: 'ticket_type',
     type: 'enum',
-    enum: CounterTicketType,
+    enum: QueueTicketType,
   })
-  ticket_type: CounterTicketType;
+  ticket_type: QueueTicketType;
 
   @Column({ name: 'last_number', type: 'int', default: 0 })
   last_number: number;

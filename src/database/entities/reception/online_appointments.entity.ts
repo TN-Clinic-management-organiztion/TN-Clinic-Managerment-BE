@@ -62,7 +62,7 @@ export class OnlineAppointment {
     name: 'status',
     type: 'enum',
     enum: AppointmentStatus,
-    default: AppointmentStatus.CONFIRMED,
+    default: AppointmentStatus.PENDING,
   })
   status: AppointmentStatus;
 

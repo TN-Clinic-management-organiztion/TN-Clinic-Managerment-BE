@@ -7,6 +7,7 @@ import { ClinicalModule } from 'src/modules/clinical/clinical.module';
 import { IamModule } from 'src/modules/iam/iam.module';
 import { ParaclinicalModule } from 'src/modules/paraclinical/paraclinical.module';
 import { PharmacyModule } from 'src/modules/pharmacy/pharmacy.module';
+import { ReceptionModule } from 'src/modules/reception/reception.module';
 import { SystemModule } from 'src/modules/system/system.module';
 import { CloudinaryModule } from 'src/shared/cloudinary/cloudinary.module';
 import { ALL_ENTITIES } from 'src/shared/Tables/all_entities';
@@ -38,7 +39,8 @@ import { ALL_ENTITIES } from 'src/shared/Tables/all_entities';
     IamModule,
     SystemModule,
     ClinicalModule,
-    PharmacyModule
+    PharmacyModule,
+    ReceptionModule
   ],
 })
 export class AppModule implements NestModule {
