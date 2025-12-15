@@ -32,7 +32,7 @@ export class ResultImage {
 
   // --- COLUMNS ---
   @Column({ name: 'public_id', length: 255, nullable: true })
-  public_id: string;
+  public_id?: string;
 
   @Column({ name: 'original_image_url', length: 500 })
   original_image_url: string;
