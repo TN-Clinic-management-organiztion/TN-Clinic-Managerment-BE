@@ -1,0 +1,50 @@
+-- 1. Insert các CHƯƠNG lớn (Level 1)
+INSERT INTO ref_icd10 (icd_code, name_vi, name_en, parent_code, level, is_leaf) VALUES
+('A00-B99', 'Bệnh nhiễm trùng và ký sinh trùng', 'Certain infectious and parasitic diseases', NULL, 1, FALSE),
+('C00-D48', 'U tân sinh', 'Neoplasms', NULL, 1, FALSE);
+
+-- 2. Insert các NHÓM bệnh (Level 2) - Liên kết với Chương
+INSERT INTO ref_icd10 (icd_code, name_vi, name_en, parent_code, level, is_leaf) VALUES
+-- Nhóm con của A00-B99
+('A00-A09', 'Bệnh nhiễm trùng đường ruột', 'Intestinal infectious diseases', 'A00-B99', 2, FALSE),
+('A15-A19', 'Bệnh lao', 'Tuberculosis', 'A00-B99', 2, FALSE),
+
+-- Nhóm con của C00-D48 (U tân sinh)
+-- Lưu ý: Trong ảnh có nhiều cấp con (C00-C97 -> C00-C75), tôi lấy nhóm trực tiếp chứa bệnh để đơn giản hóa
+('C00-C14', 'U ác ở môi, khoang miệng và hầu họng', 'Malignant neoplasms of lip, oral cavity and pharynx', 'C00-D48', 2, FALSE);
+
+-- 3. Insert chi tiết BỆNH (Level 3) - Leaf nodes
+
+-- A. Chi tiết nhóm A00-A09 (Nhiễm trùng đường ruột)
+INSERT INTO ref_icd10 (icd_code, name_vi, name_en, parent_code, level, is_leaf) VALUES
+('A00', 'Bệnh tả', 'Cholera', 'A00-A09', 3, TRUE),
+('A01', 'Bệnh thương hàn và phó thương hàn', 'Typhoid and paratyphoid fevers', 'A00-A09', 3, TRUE),
+('A02', 'Nhiễm Salmonella khác', 'Other salmonella infections', 'A00-A09', 3, TRUE),
+('A03', 'Bệnh lỵ trực khuẩn', 'Shigellosis', 'A00-A09', 3, TRUE),
+('A04', 'Nhiễm khuẩn đường ruột do vi khuẩn khác', 'Other bacterial intestinal infections', 'A00-A09', 3, TRUE),
+('A05', 'Nhiễm độc thức ăn do vi khuẩn khác, không phân loại nơi khác', 'Other bacterial foodborne intoxications, not elsewhere classified', 'A00-A09', 3, TRUE),
+('A06', 'Bệnh do amip', 'Amoebiasis', 'A00-A09', 3, TRUE),
+('A07', 'Bệnh đường ruột do đơn bào khác', 'Other protozoal intestinal diseases', 'A00-A09', 3, TRUE),
+('A08', 'Nhiễm trùng đường ruột do vi rút và tác nhân xác định khác', 'Viral and other specified intestinal infections', 'A00-A09', 3, TRUE),
+('A09', 'Viêm dạ dày - ruột khác và viêm đại tràng do nhiễm trùng và nguyên nhân không xác định', 'Other gastroenteritis and colitis of infectious and unspecified origin', 'A00-A09', 3, TRUE);
+
+-- B. Chi tiết nhóm A15-A19 (Bệnh lao)
+INSERT INTO ref_icd10 (icd_code, name_vi, name_en, parent_code, level, is_leaf) VALUES
+('A15', 'Lao hô hấp, có khẳng định về vi khuẩn học và mô học', 'Respiratory tuberculosis, bacteriologically and histologically confirmed', 'A15-A19', 3, TRUE),
+('A16', 'Lao đường hô hấp, không khẳng định về vi khuẩn học hoặc mô học', 'Respiratory tuberculosis, not confirmed bacteriologically or histologically', 'A15-A19', 3, TRUE),
+('A17', 'Lao hệ thần kinh', 'Tuberculosis of nervous system', 'A15-A19', 3, TRUE),
+('A18', 'Lao các cơ quan khác', 'Tuberculosis of other organs', 'A15-A19', 3, TRUE),
+('A19', 'Lao kê', 'Miliary tuberculosis', 'A15-A19', 3, TRUE);
+
+-- C. Chi tiết nhóm C00-C14 (U ác tính môi/miệng)
+INSERT INTO ref_icd10 (icd_code, name_vi, name_en, parent_code, level, is_leaf) VALUES
+('C00', 'U ác của môi', 'Malignant neoplasm of lip', 'C00-C14', 3, TRUE),
+('C01', 'U ác của đáy lưỡi', 'Malignant neoplasm of base of tongue', 'C00-C14', 3, TRUE),
+('C02', 'U ác của phần khác và không xác định của lưỡi', 'Malignant neoplasm of other and unspecified parts of tongue', 'C00-C14', 3, TRUE),
+('C03', 'U ác của lợi răng', 'Malignant neoplasm of gum', 'C00-C14', 3, TRUE),
+('C04', 'U ác của sàn miệng', 'Malignant neoplasm of floor of mouth', 'C00-C14', 3, TRUE),
+('C05', 'U ác của khẩu cái', 'Malignant neoplasm of palate', 'C00-C14', 3, TRUE),
+('C06', 'U ác của phần khác và không xác định của miệng', 'Malignant neoplasm of other and unspecified parts of mouth', 'C00-C14', 3, TRUE),
+('C07', 'U ác tuyến mang tai', 'Malignant neoplasm of parotid gland', 'C00-C14', 3, TRUE),
+('C08', 'U ác của các tuyến nước bọt chính khác và không xác định', 'Malignant neoplasm of other and unspecified major salivary glands', 'C00-C14', 3, TRUE),
+('C09', 'U ác của amidan', 'Malignant neoplasm of tonsil', 'C00-C14', 3, TRUE);

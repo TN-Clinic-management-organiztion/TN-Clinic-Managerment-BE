@@ -31,6 +31,14 @@
 $ npm install
 ```
 
+```bash
+$ npm run migration:create -- src/database/migrations/SeedAdminUser
+```
+
+```bash
+$ npm run migration:generate -- src/database/migrations/AddPhoneToUser
+```
+
 ## Compile and run the project
 
 ```bash

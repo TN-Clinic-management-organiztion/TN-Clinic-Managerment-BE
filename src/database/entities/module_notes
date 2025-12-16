@@ -1,0 +1,120 @@
+1. Phân hệ Quản trị và Người dùng (AuthModule)
+Nhiệm vụ: Quản lý cơ cấu tổ chức, phân quyền và toàn bộ tài khoản con người trong hệ thống.
+  1. org_rooms: Danh mục phòng ban.
+
+  2. sys_roles: Danh mục vai trò/chức vụ.
+
+  3. sys_users: Tài khoản đăng nhập hệ thống.
+
+  4. ref_specialties: Danh mục chuyên khoa.
+
+  5. staff_profiles: Hồ sơ nhân viên.
+
+  6. patient_profiles: Hồ sơ bệnh nhân. (Lý do gộp Bệnh nhân vào đây: Vì bảng này quan hệ 1-1 với sys_users, để chung sẽ tiện xử lý logic đăng ký/đăng nhập).
+
+
+2. Phân hệ Đặt lịch và Tiếp đón (ReceptionModule)
+Nhiệm vụ: Quản lý luồng đầu vào của phòng khám.
+  7. online_appointments: Lịch hẹn online.
+
+  8. queue_counters: Bộ đếm số thứ tự.
+
+  9. queue_tickets: Phiếu lấy số/xếp hàng.
+
+3. Phân hệ Khám bệnh (ClinicalModule)
+Nhiệm vụ: Không gian làm việc chính của Bác sĩ.
+  10. medical_encounters: Lượt khám bệnh.
+
+  11. encounter_cls_tracking: Theo dõi trạng thái chỉ định.
+
+  12. ref_icd10: Danh mục mã bệnh ICD-10.
+
+4. Phân hệ Cận lâm sàng và Dịch vụ (ServiceModule)
+Nhiệm vụ: Quản lý các dịch vụ xét nghiệm, chẩn đoán hình ảnh và kết quả.
+  13. ref_service_categories: Danh mục nhóm dịch vụ.
+
+  14. ref_services: Danh mục dịch vụ chi tiết.
+
+  15. room_services: Cấu hình phòng - dịch vụ.
+
+  16. ref_lab_indicators: Danh mục chỉ số xét nghiệm.
+
+  17. rel_service_indicators: Liên kết dịch vụ - chỉ số.
+
+  18. service_requests: Phiếu chỉ định (Order).
+
+  19. service_request_items: Chi tiết chỉ định.
+
+  20. service_report_templates: Mẫu kết quả.
+
+  21. service_results: Kết quả trả về.
+
+  22. result_details_numeric: Chi tiết chỉ số kết quả.
+
+  23. result_images: Ảnh y tế (Dữ liệu gốc).
+
+  24. result_discussions: Hội chẩn kết quả.
+
+5. Phân hệ AI và Gán nhãn (AiModule)
+Nhiệm vụ: Quản lý quy trình huấn luyện và gán nhãn dữ liệu.
+  25. annotation_projects: Dự án training.
+
+  26. image_annotations: Dữ liệu nhãn (Bounding box, Label...).
+
+  27. annotation_project_images: Liên kết Dự án - Ảnh.
+
+6. Phân hệ Dược và Kho (PharmacyModule)
+Nhiệm vụ: Quản lý nhập xuất tồn và kê đơn thuốc.
+  28. ref_drug_categories: Danh mục nhóm thuốc.
+
+  29. ref_drugs: Danh mục thuốc.
+
+  30. drug_interactions: Tương tác thuốc.
+
+  31. inventory_locations: Vị trí kho.
+
+  32. drug_suppliers: Nhà cung cấp.
+
+  33. drug_imports: Phiếu nhập kho.
+
+  34. drug_import_details: Chi tiết nhập.
+
+  35. drug_batches: Quản lý lô/Hạn dùng.
+
+  36. prescriptions: Đơn thuốc.
+
+  37. prescription_details: Chi tiết đơn.
+
+  38. prescription_batch_dispenses: Xuất kho theo lô.
+
+7. Phân hệ Tài chính (FinanceModule)
+Nhiệm vụ: Thu ngân và quản lý dòng tiền.
+  39. invoices: Hóa đơn.
+
+  40. invoice_items: Chi tiết hóa đơn.
+
+  41. ref_payment_methods: Phương thức thanh toán.
+
+  42. invoice_payments: Lịch sử thanh toán.
+
+8. Phân hệ Nhân sự (HrModule)
+Nhiệm vụ: Quản lý chấm công, tính lương nội bộ.
+  43. hr_shifts: Ca làm việc.
+
+  44. hr_leave_requests: Đơn xin nghỉ.
+
+  45. hr_time_attendance: Chấm công hàng ngày.
+
+  46. hr_salary_config: Cấu hình lương.
+
+  47. hr_allowances: Phụ cấp.
+
+  48. hr_payroll: Bảng lương tháng.
+
+9. Phân hệ Hệ thống (SystemModule)
+Nhiệm vụ: Các chức năng nền tảng.
+  49. system_notifications: Thông báo.
+
+  50. system_config: Cấu hình chung.
+
+  51. system_audit_logs: Nhật ký hệ thống.
