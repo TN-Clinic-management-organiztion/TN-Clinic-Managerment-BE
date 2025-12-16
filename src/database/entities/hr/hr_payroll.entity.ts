@@ -17,16 +17,29 @@ export enum PayrollStatus {
 }
 
 @Entity('hr_payroll')
-// Lưu ý: Update tên thuộc tính trong Unique constraint
+// Lưu ý: staff_id trong mảng này tham chiếu đến tên cột RAW FK bên dưới
 @Unique('uk_staff_payroll_month', ['staff_id', 'payroll_month'])
 export class HrPayroll {
   @PrimaryGeneratedColumn('uuid', { name: 'payroll_id' })
   payroll_id: string;
 
+  // --- RAW FKs ---
+  @Column({ name: 'staff_id', type: 'uuid' })
+  staff_id: string;
+
+  @Column({ name: 'approved_by', type: 'uuid', nullable: true })
+  approved_by?: string;
+
+  // --- RELATIONS ---
   @ManyToOne(() => StaffProfile, { nullable: false })
   @JoinColumn({ name: 'staff_id', referencedColumnName: 'staff_id' })
-  staff_id: StaffProfile;
+  staff: StaffProfile;
 
+  @ManyToOne(() => StaffProfile, { nullable: true })
+  @JoinColumn({ name: 'approved_by', referencedColumnName: 'staff_id' })
+  approver?: StaffProfile;
+
+  // --- COLUMNS ---
   @Column({ name: 'payroll_month', type: 'date' })
   payroll_month: Date;
 
@@ -133,10 +146,6 @@ export class HrPayroll {
   })
   status: PayrollStatus;
 
-  @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'approved_by', referencedColumnName: 'staff_id' })
-  approved_by?: StaffProfile;
-
   @Column({
     name: 'paid_at',
     type: 'timestamptz',
@@ -152,12 +161,4 @@ export class HrPayroll {
 
   @Column({ name: 'notes', type: 'text', nullable: true })
   notes?: string;
-
-  @ManyToOne(() => StaffProfile, { nullable: false })
-  @JoinColumn({ name: 'staff_id', referencedColumnName: 'staff_id' })
-  staff: StaffProfile;
-
-  @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'approved_by', referencedColumnName: 'staff_id' })
-  approver?: StaffProfile;
 }
