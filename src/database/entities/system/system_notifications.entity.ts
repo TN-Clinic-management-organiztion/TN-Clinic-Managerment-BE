@@ -1,7 +1,21 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
-export enum NotificationType { SYSTEM = 'SYSTEM', APPOINTMENT = 'APPOINTMENT', URGENT = 'URGENT', LEAVE = 'LEAVE', PAYROLL = 'PAYROLL', TASK = 'TASK' }
+export enum NotificationType {
+  SYSTEM = 'SYSTEM',
+  APPOINTMENT = 'APPOINTMENT',
+  URGENT = 'URGENT',
+  LEAVE = 'LEAVE',
+  PAYROLL = 'PAYROLL',
+  TASK = 'TASK',
+}
 
 @Entity('system_notifications')
 export class SystemNotification {
@@ -31,12 +45,23 @@ export class SystemNotification {
   @Column({ name: 'message', type: 'text' })
   message: string;
 
-  @Column({ name: 'notification_type', type: 'enum', enum: NotificationType, default: NotificationType.SYSTEM })
+  @Column({
+    name: 'notification_type',
+    type: 'enum',
+    enum: NotificationType,
+    default: NotificationType.SYSTEM,
+  })
   notification_type: NotificationType;
 
   @Column({ name: 'is_read', default: false })
   is_read: boolean;
 
+  @CreateDateColumn({ name: 'read_at', type: 'timestamptz' })
+  read_at: Date;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at: Date;
+
+  @Column({ name: 'is_deleted', default: false })
+  is_deleted: boolean;
 }
