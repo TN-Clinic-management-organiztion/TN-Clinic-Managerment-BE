@@ -2,7 +2,6 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGenerat
 import { StaffProfile } from '../auth/staff_profiles.entity';
 import { HrShift } from './hr_shifts.entity';
 import { HrLeaveRequest } from './hr_leave_requests.entity';
-import { NestedSetMultipleRootError } from 'typeorm/error/NestedSetMultipleRootError.js';
 
 export enum AttendanceStatus { PRESENT = 'PRESENT', ABSENT = 'ABSENT', LEAVE = 'LEAVE', HOLIDAY = 'HOLIDAY' }
 
@@ -40,7 +39,7 @@ export class HrTimeAttendance {
   work_date: Date;
 
   @Column({ name: 'check_in_time', type: 'timestamptz', nullable: true })
-  check_in_time?: Date | NestedSetMultipleRootError;
+  check_in_time?: Date;
 
   @Column({ name: 'check_in_ip', type: 'inet', nullable: true })
   check_in_ip?: string ;
