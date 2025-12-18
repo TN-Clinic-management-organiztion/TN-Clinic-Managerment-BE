@@ -198,7 +198,7 @@ export class OrgRoomsService {
       .select([
         's.service_id',
         's.service_name',
-        's.base_price',
+        's.unit_price',
         's.result_input_type',
         'sc.category_name',
       ])

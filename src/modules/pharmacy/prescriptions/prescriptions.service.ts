@@ -1,4 +1,3 @@
-import { DrugInteraction } from 'src/database/entities/pharmacy/drug_interactions.entity';
 import { RefDrug } from 'src/database/entities/pharmacy/ref_drugs.entity';
 import { PrescriptionDetail } from 'src/database/entities/pharmacy/prescription_details.entity';
 import { Prescription, PrescriptionStatus } from 'src/database/entities/pharmacy/prescriptions.entity';
@@ -25,8 +24,6 @@ export class PrescriptionsService {
     private readonly detailRepo: Repository<PrescriptionDetail>,
     @InjectRepository(RefDrug)
     private readonly drugRepo: Repository<RefDrug>,
-    @InjectRepository(DrugInteraction)
-    private readonly interactionRepo: Repository<DrugInteraction>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -41,17 +38,6 @@ export class PrescriptionsService {
       throw new BadRequestException('Some drugs not found or inactive');
     }
 
-    // Kiểm tra tương tác thuốc
-    const interactions = await this.checkDrugInteractions(drugIds);
-
-    if (interactions.length > 0 && !dto.interaction_override_reason) {
-      throw new BadRequestException({
-        message: 'Drug interactions detected',
-        interactions,
-        requireOverrideReason: true,
-      });
-    }
-
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -61,7 +47,6 @@ export class PrescriptionsService {
       const prescription = this.prescriptionRepo.create({
         encounter_id: dto.encounter_id,
         prescribing_doctor_id: dto.prescribing_doctor_id,
-        interaction_override_reason: dto.interaction_override_reason,
         status: PrescriptionStatus.DRAFT,
       });
       const savedPrescription = await queryRunner.manager.save(prescription);
@@ -88,23 +73,6 @@ export class PrescriptionsService {
     }
   }
 
-  private async checkDrugInteractions(
-    drugIds: number[],
-  ): Promise<DrugInteraction[]> {
-    if (drugIds.length < 2) return [];
-
-    const interactions = await this.interactionRepo
-      .createQueryBuilder('interaction')
-      .leftJoinAndSelect('interaction.drug_a', 'drug_a')
-      .leftJoinAndSelect('interaction.drug_b', 'drug_b')
-      .where(
-        '(interaction.drug_a_id IN (:...drugIds) AND interaction.drug_b_id IN (:...drugIds))',
-        { drugIds },
-      )
-      .getMany();
-
-    return interactions;
-  }
 
   async findAll(query: QueryPrescriptionDto) {
     const {

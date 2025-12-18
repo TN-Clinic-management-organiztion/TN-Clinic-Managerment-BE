@@ -5,9 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In } from 'typeorm';
-import { DrugSupplier } from './../../../database/entities/pharmacy/drug_suppliers.entity';
 import { RefDrug } from './../../../database/entities/pharmacy/ref_drugs.entity';
-import { DrugBatch } from './../../../database/entities/pharmacy/drug_batches.entity';
 import { DrugImportDetail } from './../../../database/entities/pharmacy/drug_import_details.entity';
 import { DrugImport } from './../../../database/entities/pharmacy/drug_imports.entity';
 import {
@@ -23,28 +21,12 @@ export class DrugImportsService {
     private readonly importRepo: Repository<DrugImport>,
     @InjectRepository(DrugImportDetail)
     private readonly detailRepo: Repository<DrugImportDetail>,
-    @InjectRepository(DrugBatch)
-    private readonly batchRepo: Repository<DrugBatch>,
     @InjectRepository(RefDrug)
     private readonly drugRepo: Repository<RefDrug>,
-    @InjectRepository(DrugSupplier)
-    private readonly supplierRepo: Repository<DrugSupplier>,
     private readonly dataSource: DataSource,
   ) {}
 
   async create(dto: CreateDrugImportDto): Promise<DrugImport> {
-    // Validate supplier_id
-    if (dto.supplier_id) {
-      const supplier = await this.supplierRepo.findOne({
-        where: { supplier_id: dto.supplier_id },
-      });
-      if (!supplier) {
-        throw new NotFoundException(
-          `Supplier with ID ${dto.supplier_id} not found`,
-        );
-      }
-    }
-
     // Validate drug_ids
     const drugIds = [...new Set(dto.details.map((d) => d.drug_id))];
     const drugs = await this.drugRepo.find({
@@ -52,17 +34,6 @@ export class DrugImportsService {
     });
     if (drugs.length !== drugIds.length) {
       throw new BadRequestException('Some drugs not found');
-    }
-
-    // Validate expiry dates
-    const today = new Date();
-    for (const detail of dto.details) {
-      const expiryDate = new Date(detail.expiry_date);
-      if (expiryDate <= today) {
-        throw new BadRequestException(
-          `Drug ID ${detail.drug_id}: Expiry date must be in the future`,
-        );
-      }
     }
 
     // Tính tổng tiền
@@ -80,7 +51,6 @@ export class DrugImportsService {
         import_date: dto.import_date
           ? new Date(dto.import_date)
           : new Date(),
-        supplier_id: dto.supplier_id,
         imported_by: dto.imported_by,
         invoice_number: dto.invoice_number,
         notes: dto.notes,
@@ -88,30 +58,25 @@ export class DrugImportsService {
       });
       const savedImport = await queryRunner.manager.save(drugImport);
 
-      // 2. Tạo drug_import_details và drug_batches
+      // 2. Tạo drug_import_details và cập nhật quantity trong ref_drugs
       for (const detailDto of dto.details) {
         // Tạo detail
         const detail = this.detailRepo.create({
           import_id: savedImport.import_id,
           drug_id: detailDto.drug_id,
-          batch_number: detailDto.batch_number,
-          expiry_date: new Date(detailDto.expiry_date),
           quantity: detailDto.quantity,
           unit_price: detailDto.unit_price,
         });
-        const savedDetail = await queryRunner.manager.save(detail);
+        await queryRunner.manager.save(detail);
 
-        // Tự động tạo batch từ import detail
-        const batch = this.batchRepo.create({
-          import_detail_id: savedDetail.import_detail_id,
-          drug_id: detailDto.drug_id,
-          batch_number: detailDto.batch_number,
-          expiry_date: new Date(detailDto.expiry_date),
-          quantity_initial: detailDto.quantity,
-          quantity_current: detailDto.quantity,
-          is_opened_box: false,
+        // Cập nhật quantity trong ref_drugs
+        const drug = await queryRunner.manager.findOne(RefDrug, {
+          where: { drug_id: detailDto.drug_id },
         });
-        await queryRunner.manager.save(batch);
+        if (drug) {
+          drug.quantity = (drug.quantity || 0) + detailDto.quantity;
+          await queryRunner.manager.save(drug);
+        }
       }
 
       await queryRunner.commitTransaction();
@@ -131,7 +96,6 @@ export class DrugImportsService {
       page = 1,
       limit = 20,
       search,
-      supplier_id,
       from_date,
       to_date,
     } = query;
@@ -139,7 +103,6 @@ export class DrugImportsService {
 
     const qb = this.importRepo
       .createQueryBuilder('import')
-      .leftJoinAndSelect('import.supplier', 'supplier')
       .leftJoinAndSelect('import.importer', 'importer');
 
     if (search) {
@@ -147,10 +110,6 @@ export class DrugImportsService {
         'import.invoice_number ILIKE :search OR import.notes ILIKE :search',
         { search: `%${search}%` },
       );
-    }
-
-    if (supplier_id) {
-      qb.andWhere('import.supplier_id = :supplier_id', { supplier_id });
     }
 
     if (from_date && to_date) {
@@ -188,7 +147,6 @@ export class DrugImportsService {
   async findOne(id: number): Promise<DrugImport> {
     const drugImport = await this.importRepo
       .createQueryBuilder('import')
-      .leftJoinAndSelect('import.supplier', 'supplier')
       .leftJoinAndSelect('import.importer', 'importer')
       .where('import.import_id = :id', { id })
       .getOne();
@@ -239,17 +197,6 @@ export class DrugImportsService {
       throw new NotFoundException(`Drug import with ID ${id} not found`);
     }
 
-    if (dto.supplier_id !== undefined && dto.supplier_id !== null) {
-      const supplier = await this.supplierRepo.findOne({
-        where: { supplier_id: dto.supplier_id },
-      });
-      if (!supplier) {
-        throw new NotFoundException(
-          `Supplier with ID ${dto.supplier_id} not found`,
-        );
-      }
-    }
-
     Object.assign(drugImport, {
       ...dto,
       import_date: dto.import_date
@@ -263,49 +210,6 @@ export class DrugImportsService {
 
   async remove(id: number): Promise<void> {
     const drugImport = await this.findOne(id);
-
-    // Kiểm tra xem có batch nào đã xuất chưa
-    const details = (drugImport as any).details || [];
-    for (const detail of details) {
-      const batches = await this.batchRepo.find({
-        where: { import_detail_id: detail.import_detail_id },
-      });
-
-      for (const batch of batches) {
-        if (batch.quantity_current < batch.quantity_initial) {
-          throw new BadRequestException(
-            `Cannot delete import: Batch ${batch.batch_id} has been partially dispensed`,
-          );
-        }
-      }
-    }
-
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      // Xóa batches
-      for (const detail of details) {
-        await queryRunner.manager.delete(DrugBatch, {
-          import_detail_id: detail.import_detail_id,
-        });
-      }
-
-      // Xóa details
-      await queryRunner.manager.delete(DrugImportDetail, {
-        import_id: id,
-      });
-
-      // Xóa import
-      await queryRunner.manager.delete(DrugImport, { import_id: id });
-
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
+    await this.importRepo.remove(drugImport);
   }
 }

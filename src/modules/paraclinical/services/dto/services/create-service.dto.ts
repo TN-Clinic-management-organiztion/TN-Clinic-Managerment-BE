@@ -11,7 +11,7 @@ export class CreateServiceDto {
 
   @IsOptional()
   @IsNumber()
-  base_price?: number;
+  unit_price?: number;
 
   @IsOptional()
   @IsEnum(ResultInputType)

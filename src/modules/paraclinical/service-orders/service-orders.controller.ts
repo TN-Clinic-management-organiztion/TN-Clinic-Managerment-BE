@@ -26,6 +26,12 @@ export class ServiceOrdersController {
     return this.serviceOrdersService.createRequest(dto);
   }
 
+  @Post('create-initial')
+  createInitial(@Body() payload) {
+    const {encounterId, serviceId, requestedBy} = payload;
+    return this.serviceOrdersService.createInitialConsultationRequest(encounterId, serviceId, requestedBy);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all service requests with pagination' })
   findAllRequests(@Query() query: QueryServiceRequestDto) {

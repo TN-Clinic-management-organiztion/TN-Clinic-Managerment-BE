@@ -15,6 +15,9 @@ import { SystemAuditLog } from '../../database/entities/system/system_audit_logs
 import { NotificationsController } from './notifications/notifications.controller';
 import { NotificationsService } from './notifications/notifications.service';
 import { SystemNotification } from '../../database/entities/system/system_notifications.entity';
+import { OrgRoom } from 'src/database/entities/auth/org_rooms.entity';
+import { OrgRoomsController } from 'src/modules/system/org_room/org-room.controller';
+import { OrgRoomsService } from 'src/modules/system/org_room/org-room.service';
 
 @Module({
   imports: [
@@ -25,22 +28,28 @@ import { SystemNotification } from '../../database/entities/system/system_notifi
       SystemAuditLog,
       // Notifications
       SystemNotification,
+      // Org Room
+      OrgRoom
+      
     ]),
   ],
   controllers: [
     ConfigController,
     AuditLogsController,
     NotificationsController,
+    OrgRoomsController
   ],
   providers: [
     ConfigService,
     AuditLogsService,
     NotificationsService,
+    OrgRoomsService
   ],
   exports: [
     ConfigService,
     AuditLogsService,
     NotificationsService,
+    OrgRoomsService
   ],
 })
 export class SystemModule {}

@@ -9,8 +9,6 @@ import { ServiceRequest } from 'src/database/entities/service/service_requests.e
 import { ServiceRequestItem } from 'src/database/entities/service/service_request_items.entity';
 import { ServiceResult } from 'src/database/entities/service/service_results.entity';
 import { ResultImage } from 'src/database/entities/service/result_images.entity';
-import { ServiceReportTemplate } from 'src/database/entities/service/service_report_templates.entity';
-import { ResultDiscussion } from 'src/database/entities/service/result_discussions.entity';
 
 // Services Module
 import { ServicesController } from './services/services.controller';
@@ -42,8 +40,6 @@ import { CloudinaryModule } from 'src/shared/cloudinary/cloudinary.module';
       // Result entities
       ServiceResult,
       ResultImage,
-      ServiceReportTemplate,
-      ResultDiscussion,
     ]),
     CloudinaryModule,
   ],

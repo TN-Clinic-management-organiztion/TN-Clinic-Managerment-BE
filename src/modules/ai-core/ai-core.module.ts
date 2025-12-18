@@ -9,16 +9,25 @@ import { AiCoreService } from './ai-core.service';
 // Import Entities
 import { ImageAnnotation } from 'src/database/entities/ai/image_annotations.entity';
 import { ResultImage } from 'src/database/entities/service/result_images.entity';
+import { AnnotationProject } from 'src/database/entities/ai/annotation_projects.entity';
+import { AnnotationProjectImage } from 'src/database/entities/ai/annotation_project_images.entity';
+import { ProjectsController } from 'src/modules/ai-core/projects.controller';
+import { ProjectsService } from 'src/modules/ai-core/projects.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ImageAnnotation, ResultImage]),
+    TypeOrmModule.forFeature([
+      ImageAnnotation,
+      ResultImage,
+      AnnotationProject,
+      AnnotationProjectImage,
+    ]),
     // Module support call API (axios wrapper)
     HttpModule,
     ConfigModule,
   ],
-  controllers: [AiCoreController],
-  providers: [AiCoreService],
-  exports: [AiCoreService],
+  controllers: [AiCoreController, ProjectsController],
+  providers: [AiCoreService, ProjectsService],
+  exports: [AiCoreService, ProjectsService],
 })
 export class AiCoreModule {}

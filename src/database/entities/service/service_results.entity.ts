@@ -8,7 +8,6 @@ import {
 } from 'typeorm';
 import { ServiceRequestItem } from './service_request_items.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
-import { ServiceReportTemplate } from './service_report_templates.entity';
 import { DataSource } from 'typeorm';
 
 @Entity('service_results')
@@ -23,12 +22,6 @@ export class ServiceResult {
   @Column({ name: 'technician_id', type: 'uuid', nullable: true })
   technician_id?: string | null;
 
-  @Column({ name: 'approving_doctor_id', type: 'uuid', nullable: true })
-  approving_doctor_id?: string | null;
-
-  @Column({ name: 'used_template_id', type: 'int', nullable: true })
-  used_template_id?: number | null;
-
   // --- RELATIONS ---
   @ManyToOne(() => ServiceRequestItem, { nullable: true })
   @JoinColumn({ name: 'request_item_id', referencedColumnName: 'item_id' })
@@ -37,14 +30,6 @@ export class ServiceResult {
   @ManyToOne(() => StaffProfile, { nullable: true })
   @JoinColumn({ name: 'technician_id', referencedColumnName: 'staff_id' })
   technician?: StaffProfile;
-
-  @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'approving_doctor_id', referencedColumnName: 'staff_id' })
-  approving_doctor?: StaffProfile;
-
-  @ManyToOne(() => ServiceReportTemplate, { nullable: true })
-  @JoinColumn({ name: 'used_template_id', referencedColumnName: 'template_id' })
-  used_template?: ServiceReportTemplate;
 
   // --- COLUMNS ---
   @Column({ name: 'main_conclusion', type: 'text', nullable: true })

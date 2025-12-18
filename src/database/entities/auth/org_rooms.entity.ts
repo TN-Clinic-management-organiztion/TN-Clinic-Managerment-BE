@@ -2,8 +2,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 export enum RoomType {
   CLINIC = 'CLINIC',
-  IMAGING = 'IMAGING',
-  LAB = 'LAB',
+  PARACLINICAL = 'PARACLINICAL',
   PHARMACY = 'PHARMACY',
   CASHIER = 'CASHIER',
   ADMIN = 'ADMIN',

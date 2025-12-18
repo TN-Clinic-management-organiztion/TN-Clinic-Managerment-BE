@@ -12,15 +12,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
-
-export enum RoomType {
-  CLINIC = 'CLINIC',
-  IMAGING = 'IMAGING',
-  LAB = 'LAB',
-  PHARMACY = 'PHARMACY',
-  CASHIER = 'CASHIER',
-  ADMIN = 'ADMIN',
-}
+import { RoomType } from 'src/database/entities/auth/org_rooms.entity';
 
 export class CreateOrgRoomDto {
   @IsNotEmpty()

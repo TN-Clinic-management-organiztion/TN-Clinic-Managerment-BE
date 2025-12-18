@@ -8,13 +8,6 @@ import {
 import { ServiceRequest } from './service_requests.entity';
 import { RefService } from './ref_services.entity';
 
-export enum ServiceItemStatus {
-  PENDING = 'PENDING',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
-}
-
 @Entity('service_request_items')
 export class ServiceRequestItem {
   @PrimaryGeneratedColumn('uuid', { name: 'item_id' })
@@ -35,13 +28,4 @@ export class ServiceRequestItem {
   @ManyToOne(() => RefService, { nullable: true })
   @JoinColumn({ name: 'service_id', referencedColumnName: 'service_id' })
   service?: RefService;
-
-  // --- COLUMNS ---
-  @Column({
-    name: 'status',
-    type: 'enum',
-    enum: ServiceItemStatus,
-    default: ServiceItemStatus.PENDING,
-  })
-  status: ServiceItemStatus;
 }

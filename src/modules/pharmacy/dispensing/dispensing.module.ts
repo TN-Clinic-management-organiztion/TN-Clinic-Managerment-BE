@@ -1,5 +1,4 @@
-import { DrugBatch } from 'src/database/entities/pharmacy/drug_batches.entity';
-import { PrescriptionBatchDispense } from 'src/database/entities/pharmacy/prescription_batch_dispenses.entity';
+import { RefDrug } from 'src/database/entities/pharmacy/ref_drugs.entity';
 import { PrescriptionDetail } from 'src/database/entities/pharmacy/prescription_details.entity';
 import { Prescription } from 'src/database/entities/pharmacy/prescriptions.entity';
 import { Module } from '@nestjs/common';
@@ -12,8 +11,7 @@ import { DispensingController } from './dispensing.controller';
     TypeOrmModule.forFeature([
       Prescription,
       PrescriptionDetail,
-      PrescriptionBatchDispense,
-      DrugBatch,
+      RefDrug,
     ]),
   ],
   controllers: [DispensingController],

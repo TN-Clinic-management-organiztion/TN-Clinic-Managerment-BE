@@ -97,7 +97,7 @@ paraclinical/
 #### Enum sử dụng (import từ entity):
 ```typescript
 import { PaymentStatus } from 'src/database/entities/service/service_requests.entity';
-import { ServiceItemStatus } from 'src/database/entities/service/service_request_items.entity';
+// Đã bỏ ServiceItemStatus và cột status trên service_request_items
 ```
 
 ### 3. Results Module

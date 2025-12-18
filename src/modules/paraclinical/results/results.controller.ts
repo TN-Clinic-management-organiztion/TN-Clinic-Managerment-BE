@@ -1,9 +1,3 @@
-import { QueryDiscussionDto } from './dto/discussions/query-discussion.dto';
-import { UpdateDiscussionDto } from './dto/discussions/update-discussion.dto';
-import { CreateDiscussionDto } from './dto/discussions/create-discussion.dto';
-import { QueryTemplateDto } from './dto/templates/query-template.dto';
-import { UpdateTemplateDto } from './dto/templates/update-template.dto';
-import { CreateTemplateDto } from './dto/templates/create-template.dto';
 import { BulkUploadImagesDto } from './dto/images/bulk-upload-image.dto';
 import { QueryResultImageDto } from './dto/images/query-image.dto';
 import { UpdateResultImageDto } from './dto/images/update-image.dto';
@@ -115,73 +109,5 @@ export class ResultsController {
   @ApiOperation({ summary: 'Delete image and from Cloudinary' })
   removeImage(@Param('id') id: string) {
     return this.resultsService.removeImage(id);
-  }
-
-  // ==================== TEMPLATES ====================
-  @Post('templates')
-  @ApiOperation({ summary: 'Create report template' })
-  createTemplate(@Body() dto: CreateTemplateDto) {
-    return this.resultsService.createTemplate(dto);
-  }
-
-  @Get('templates')
-  @ApiOperation({ summary: 'Get all templates with pagination' })
-  findAllTemplates(@Query() query: QueryTemplateDto) {
-    return this.resultsService.findAllTemplates(query);
-  }
-
-  @Get('templates/:id')
-  @ApiOperation({ summary: 'Get template by ID' })
-  findOneTemplate(@Param('id') id: string) {
-    return this.resultsService.findOneTemplate(+id);
-  }
-
-  @Patch('templates/:id')
-  @ApiOperation({ summary: 'Update template' })
-  updateTemplate(@Param('id') id: string, @Body() dto: UpdateTemplateDto) {
-    return this.resultsService.updateTemplate(+id, dto);
-  }
-
-  @Delete('templates/:id')
-  @ApiOperation({ summary: 'Delete template' })
-  removeTemplate(@Param('id') id: string) {
-    return this.resultsService.removeTemplate(+id);
-  }
-
-  // ==================== DISCUSSIONS ====================
-  @Post('discussions')
-  @ApiOperation({ summary: 'Create discussion comment' })
-  createDiscussion(@Body() dto: CreateDiscussionDto) {
-    return this.resultsService.createDiscussion(dto);
-  }
-
-  @Get('discussions')
-  @ApiOperation({ summary: 'Get all discussions with pagination' })
-  findAllDiscussions(@Query() query: QueryDiscussionDto) {
-    return this.resultsService.findAllDiscussions(query);
-  }
-
-  @Get('discussions/tree/:resultId')
-  @ApiOperation({ summary: 'Get discussion tree for a result' })
-  getDiscussionTree(@Param('resultId') resultId: string) {
-    return this.resultsService.getDiscussionTree(resultId);
-  }
-
-  @Get('discussions/:id')
-  @ApiOperation({ summary: 'Get discussion by ID' })
-  findOneDiscussion(@Param('id') id: string) {
-    return this.resultsService.findOneDiscussion(id);
-  }
-
-  @Patch('discussions/:id')
-  @ApiOperation({ summary: 'Update discussion' })
-  updateDiscussion(@Param('id') id: string, @Body() dto: UpdateDiscussionDto) {
-    return this.resultsService.updateDiscussion(id, dto);
-  }
-
-  @Delete('discussions/:id')
-  @ApiOperation({ summary: 'Delete discussion and its children' })
-  removeDiscussion(@Param('id') id: string) {
-    return this.resultsService.removeDiscussion(id);
   }
 }

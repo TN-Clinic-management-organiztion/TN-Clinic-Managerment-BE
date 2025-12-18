@@ -6,7 +6,6 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { DrugSupplier } from './drug_suppliers.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
 @Entity('drug_imports')
@@ -15,20 +14,13 @@ export class DrugImport {
   import_id: number;
 
   // --- RAW FKs ---
-  @Column({ name: 'supplier_id', type: 'int', nullable: true })
-  supplier_id?: number | null;
-
   @Column({ name: 'imported_by', type: 'uuid', nullable: true })
   imported_by?: string | null;
 
   // --- RELATIONS ---
-  @ManyToOne(() => DrugSupplier, { nullable: true })
-  @JoinColumn({ name: 'supplier_id', referencedColumnName: 'supplier_id' })
-  supplier?: DrugSupplier;
-
   @ManyToOne(() => StaffProfile, { nullable: true })
   @JoinColumn({ name: 'imported_by', referencedColumnName: 'staff_id' })
-  importer?: StaffProfile; // Đổi tên relation cho rõ nghĩa
+  importer?: StaffProfile;
 
   // --- COLUMNS ---
   @Column({ name: 'import_date', type: 'date', default: () => 'CURRENT_DATE' })

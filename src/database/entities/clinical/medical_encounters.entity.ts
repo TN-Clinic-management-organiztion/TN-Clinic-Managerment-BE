@@ -22,6 +22,12 @@ export enum EncounterStatus {
   COMPLETED = 'COMPLETED',
 }
 
+// Helper để chuyển đổi Numeric (Postgres) sang Number (JS)
+const numericTransformer = {
+  to: (value: number | null) => value,
+  from: (value: string | null) => (value === null ? null : parseFloat(value)),
+};
+
 @Entity('medical_encounters')
 export class MedicalEncounter {
   @PrimaryGeneratedColumn('uuid', { name: 'encounter_id' })
@@ -72,6 +78,70 @@ export class MedicalEncounter {
   @Column({ name: 'initial_symptoms', type: 'text', nullable: true })
   initial_symptoms?: string;
 
+  // --- VITAL SIGNS (CHỈ SỐ SINH HIỆU) ---
+  @Column({
+    name: 'weight',
+    type: 'numeric',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    transformer: numericTransformer,
+  })
+  weight?: number; // Cân nặng (kg)
+
+  @Column({
+    name: 'height',
+    type: 'numeric',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    transformer: numericTransformer,
+  })
+  height?: number; // Chiều cao (cm)
+
+  @Column({
+    name: 'bmi',
+    type: 'numeric',
+    precision: 4,
+    scale: 2,
+    nullable: true,
+    transformer: numericTransformer,
+  })
+  bmi?: number; // BMI
+
+  @Column({
+    name: 'temperature',
+    type: 'numeric',
+    precision: 4,
+    scale: 1,
+    nullable: true,
+    transformer: numericTransformer,
+  })
+  temperature?: number; // Nhiệt độ (°C)
+
+  @Column({ name: 'pulse', type: 'int', nullable: true })
+  pulse?: number; // Mạch (lần/phút)
+
+  @Column({ name: 'respiratory_rate', type: 'int', nullable: true })
+  respiratory_rate?: number; // Nhịp thở (lần/phút)
+
+  @Column({ name: 'bp_systolic', type: 'int', nullable: true })
+  bp_systolic?: number; // Huyết áp tâm thu (số trên)
+
+  @Column({ name: 'bp_diastolic', type: 'int', nullable: true })
+  bp_diastolic?: number; // Huyết áp tâm trương (số dưới)
+
+  @Column({
+    name: 'sp_o2',
+    type: 'numeric',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    transformer: numericTransformer,
+  })
+  sp_o2?: number; // SpO2 (%)
+
+  // --- CONCLUSIONS ---
   @Column({ name: 'doctor_conclusion', type: 'text', nullable: true })
   doctor_conclusion?: string;
 

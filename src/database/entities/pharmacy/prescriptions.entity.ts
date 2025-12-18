@@ -52,9 +52,6 @@ export class Prescription {
   dispensing_pharmacist?: StaffProfile;
 
   // --- COLUMNS ---
-  @Column({ name: 'interaction_override_reason', type: 'text', nullable: true })
-  interaction_override_reason?: string;
-
   @Column({
     name: 'status',
     type: 'enum',

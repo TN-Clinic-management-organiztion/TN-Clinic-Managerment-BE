@@ -20,15 +20,6 @@ export class CreateDrugImportDetailDto {
   @IsInt()
   drug_id: number;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  batch_number?: string;
-
-  @IsNotEmpty()
-  @IsDateString()
-  expiry_date: string;
-
   @IsNotEmpty()
   @Type(() => Number)
   @IsInt()
@@ -45,11 +36,6 @@ export class CreateDrugImportDto {
   @IsOptional()
   @IsDateString()
   import_date?: string;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  supplier_id?: number | null;
 
   @IsOptional()
   @IsUUID()
@@ -77,11 +63,6 @@ export class UpdateDrugImportDto {
   import_date?: string;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  supplier_id?: number | null;
-
-  @IsOptional()
   @IsString()
   @MaxLength(100)
   invoice_number?: string;
@@ -92,11 +73,6 @@ export class UpdateDrugImportDto {
 }
 
 export class QueryDrugImportDto extends PageQueryDto {
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  supplier_id?: number;
-
   @IsOptional()
   @IsDateString()
   from_date?: string;

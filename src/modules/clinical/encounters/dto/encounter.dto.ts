@@ -3,10 +3,12 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
   MaxLength,
+  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
@@ -24,7 +26,7 @@ export enum EncounterStatus {
 
 export class CreateEncounterDto {
   @IsNotEmpty()
-  @IsUUID()
+  @IsUUID('all')
   patient_id: string;
 
   @IsOptional()
@@ -39,6 +41,58 @@ export class CreateEncounterDto {
   @IsOptional()
   @IsString()
   initial_symptoms?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  weight?: number; // Cân nặng (kg)
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  height?: number; // Chiều cao (cm)
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  bmi?: number; // BMI (Có thể gửi từ FE hoặc để BE tự tính)
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  temperature?: number; // Nhiệt độ
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  pulse?: number; // Mạch
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  respiratory_rate?: number; // Nhịp thở
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  bp_systolic?: number; // Huyết áp tâm thu
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  bp_diastolic?: number; // Huyết áp tâm trương
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  sp_o2?: number; // SpO2
 }
 
 export class UpdateEncounterDto extends PartialType(CreateEncounterDto) {

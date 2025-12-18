@@ -46,10 +46,6 @@ export class CreatePrescriptionDto {
   @IsUUID()
   prescribing_doctor_id?: string | null;
 
-  @IsOptional()
-  @IsString()
-  interaction_override_reason?: string;
-
   @IsNotEmpty()
   @IsArray()
   @ValidateNested({ each: true })
@@ -65,10 +61,6 @@ export class UpdatePrescriptionDto {
   @IsOptional()
   @IsUUID()
   prescribing_doctor_id?: string | null;
-
-  @IsOptional()
-  @IsString()
-  interaction_override_reason?: string;
 
   @IsOptional()
   @IsEnum(PrescriptionStatus)

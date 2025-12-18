@@ -12,17 +12,9 @@ export class QueryResultDto extends PageQueryDto {
   technician_id?: string;
 
   @IsOptional()
-  @IsUUID()
-  approving_doctor_id?: string;
-
-  @IsOptional()
   @IsBoolean()
   @Type(() => Boolean)
   is_abnormal?: boolean;
-
-  @IsOptional()
-  @Type(() => Number)
-  used_template_id?: number;
 
   @IsOptional()
   @IsDateString()

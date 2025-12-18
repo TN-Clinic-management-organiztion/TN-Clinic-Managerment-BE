@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ConflictException,
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -40,7 +39,7 @@ export class DrugsService {
         where: { drug_code: dto.drug_code },
       });
       if (existing) {
-        throw new ConflictException(
+        throw new BadRequestException(
           `Drug with code "${dto.drug_code}" already exists`,
         );
       }
@@ -119,14 +118,11 @@ export class DrugsService {
   }
 
   async getCurrentStock(drugId: number): Promise<number> {
-    const result = await this.drugRepo.manager
-      .createQueryBuilder()
-      .select('SUM(batch.quantity_current)', 'total')
-      .from('drug_batches', 'batch')
-      .where('batch.drug_id = :drugId', { drugId })
-      .getRawOne();
+    const drug = await this.drugRepo.findOne({
+      where: { drug_id: drugId },
+    });
 
-    return parseInt(result.total || '0');
+    return drug?.quantity || 0;
   }
 
   async getLowStockDrugs(): Promise<any[]> {
@@ -172,7 +168,7 @@ export class DrugsService {
         where: { drug_code: dto.drug_code, drug_id: Not(id) },
       });
       if (existing) {
-        throw new ConflictException(
+        throw new BadRequestException(
           `Drug with code "${dto.drug_code}" already exists`,
         );
       }
@@ -184,20 +180,6 @@ export class DrugsService {
 
   async remove(id: number): Promise<void> {
     const drug = await this.findOne(id);
-
-    const batchCount = await this.drugRepo.manager
-      .createQueryBuilder()
-      .select('COUNT(*)', 'count')
-      .from('drug_batches', 'b')
-      .where('b.drug_id = :id', { id })
-      .getRawOne();
-
-    if (parseInt(batchCount.count) > 0) {
-      throw new ConflictException(
-        'Cannot delete drug that has batch records',
-      );
-    }
-
     await this.drugRepo.remove(drug);
   }
 

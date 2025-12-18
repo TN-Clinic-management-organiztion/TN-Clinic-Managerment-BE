@@ -1,40 +1,96 @@
-import { RunAiDetectionDto } from 'src/modules/ai-core/dto/run-ai-detection.dto.ts';
-import { Body, Controller, DefaultValuePipe, Get, HttpCode, HttpStatus, NotFoundException, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
+// src/modules/ai-core/ai-core.controller.ts
+import { RunAiDetectionDto } from './dto/run-ai-detection.dto.ts';
+import { 
+  Body, 
+  Controller, 
+  DefaultValuePipe, 
+  Get, 
+  HttpCode, 
+  HttpStatus, 
+  NotFoundException, 
+  Param, 
+  ParseIntPipe, 
+  Patch, 
+  Post, 
+  Query 
+} from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { AiCoreService } from './ai-core.service';
-import { SaveHumanAnnotationDto, ApproveAnnotationDto, RejectAnnotationDto } from './dto/human-annotation.dto';
+import { 
+  SaveHumanAnnotationDto, 
+  ApproveAnnotationDto, 
+  RejectAnnotationDto 
+} from './dto/human-annotation.dto';
+import { ToggleDeprecateDto } from './dto/toggle-deprecate.dto';
+import { QueryResultImagesDto } from './dto/query-result-images.dto';
 
+@ApiTags('AI Core')
 @Controller('ai-core')
 export class AiCoreController {
   constructor(private readonly aiCoreService: AiCoreService) {}
 
-  // 1. Chạy AI Detect
+  // ==================== AI DETECTION ====================
+  
+  /**
+   * Chạy AI Detection trên một ảnh
+   * POST /ai-core/detect
+   */
   @Post('detect')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Run AI detection on image' })
   async triggerDetection(@Body() dto: RunAiDetectionDto) {
     return await this.aiCoreService.runDetectionForImage(dto);
   }
 
-  // 2. Lấy danh sách ảnh (Gallery)
+  // ==================== GALLERY (LIST IMAGES) ====================
+  
+  /**
+   * Lấy danh sách ảnh với phân trang và filter
+   * GET /ai-core/result-images?page=1&limit=10&status=TODO&search=lung
+   */
   @Get('result-images')
-  async getListResultImages(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query('status') status?: string,
-    @Query('search') search?: string,
-  ) {
+  @ApiOperation({ summary: 'Get list of result images (Gallery view)' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'status', required: false, enum: ['TODO', 'REVIEW', 'DONE'] })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  async getListResultImages(@Query() query: QueryResultImagesDto) {
+    const { page = 1, limit = 10, status, search } = query;
     return await this.aiCoreService.getListResultImages(page, limit, status, search);
   }
 
-  // 3. Lấy chi tiết ảnh (Workspace)
+  // ==================== WORKSPACE (IMAGE DETAIL) ====================
+  
+  /**
+   * Lấy chi tiết ảnh với AI reference và annotation history
+   * GET /ai-core/result-images/:image_id
+   */
   @Get('result-images/:image_id')
+  @ApiOperation({ summary: 'Get image detail (Workspace view)' })
   async getResultImageDetail(@Param('image_id') image_id: string) {
     const data = await this.aiCoreService.getResultImageDetail(image_id);
     if (!data) throw new NotFoundException('Image not found');
     return data;
   }
 
-  // 4. Lưu kết quả (Nộp bài / Chỉnh sửa)
+  /**
+   * Lấy annotation history của một ảnh
+   * GET /ai-core/result-images/:image_id/history
+   */
+  @Get('result-images/:image_id/history')
+  @ApiOperation({ summary: 'Get annotation history for an image' })
+  async getAnnotationHistory(@Param('image_id') image_id: string) {
+    return await this.aiCoreService.getAnnotationHistory(image_id);
+  }
+
+  // ==================== HUMAN ANNOTATION WORKFLOW ====================
+  
+  /**
+   * Lưu/Cập nhật Human Annotation (Draft/Submit)
+   * POST /ai-core/result-images/:image_id/human-annotations
+   */
   @Post('result-images/:image_id/human-annotations')
+  @ApiOperation({ summary: 'Save or submit human annotation' })
   async saveHumanAnnotation(
     @Param('image_id') image_id: string,
     @Body() dto: SaveHumanAnnotationDto,
@@ -42,8 +98,12 @@ export class AiCoreController {
     return await this.aiCoreService.upsertHumanAnnotation(image_id, dto);
   }
 
-  // 5. Duyệt (Approve)
+  /**
+   * Duyệt annotation (SUBMITTED -> APPROVED)
+   * PATCH /ai-core/result-images/:image_id/approve
+   */
   @Patch('result-images/:image_id/approve')
+  @ApiOperation({ summary: 'Approve human annotation' })
   async approveHumanAnnotation(
     @Param('image_id') image_id: string,
     @Body() dto: ApproveAnnotationDto,
@@ -51,12 +111,77 @@ export class AiCoreController {
     return await this.aiCoreService.approveHumanAnnotation(image_id, dto);
   }
 
-  // 6. Từ chối (Reject)
+  /**
+   * Từ chối annotation (SUBMITTED -> REJECTED)
+   * PATCH /ai-core/result-images/:image_id/reject
+   */
   @Patch('result-images/:image_id/reject')
+  @ApiOperation({ summary: 'Reject human annotation' })
   async rejectAnnotation(
-    @Param('image_id') id: string,
+    @Param('image_id') image_id: string,
     @Body() dto: RejectAnnotationDto,
   ) {
-    return await this.aiCoreService.rejectAnnotation(id, dto);
+    return await this.aiCoreService.rejectAnnotation(image_id, dto);
+  }
+
+  // ==================== ANNOTATION MANAGEMENT ====================
+  
+  /**
+   * Toggle deprecate status của một annotation
+   * PATCH /ai-core/annotations/:annotation_id/deprecate
+   */
+  @Patch('annotations/:annotation_id/deprecate')
+  @ApiOperation({ summary: 'Toggle deprecate status of annotation' })
+  async toggleDeprecateAnnotation(
+    @Param('annotation_id') annotation_id: string,
+    @Body() dto: ToggleDeprecateDto,
+  ) {
+    return await this.aiCoreService.toggleDeprecateAnnotation(
+      annotation_id,
+      dto.is_deprecated,
+      dto.reason,
+    );
+  }
+
+  /**
+   * Lấy chi tiết một annotation
+   * GET /ai-core/annotations/:annotation_id
+   */
+  @Get('annotations/:annotation_id')
+  @ApiOperation({ summary: 'Get annotation detail' })
+  async getAnnotationDetail(@Param('annotation_id') annotation_id: string) {
+    return await this.aiCoreService.getAnnotationDetail(annotation_id);
+  }
+
+  /**
+   * So sánh AI vs Human annotations
+   * GET /ai-core/result-images/:image_id/compare
+   */
+  @Get('result-images/:image_id/compare')
+  @ApiOperation({ summary: 'Compare AI and Human annotations' })
+  async compareAnnotations(@Param('image_id') image_id: string) {
+    return await this.aiCoreService.compareAnnotations(image_id);
+  }
+
+  // ==================== STATISTICS ====================
+  
+  /**
+   * Thống kê tổng quan
+   * GET /ai-core/statistics/overview
+   */
+  @Get('statistics/overview')
+  @ApiOperation({ summary: 'Get annotation statistics overview' })
+  async getStatisticsOverview() {
+    return await this.aiCoreService.getStatisticsOverview();
+  }
+
+  /**
+   * Thống kê theo labeler
+   * GET /ai-core/statistics/by-labeler/:staff_id
+   */
+  @Get('statistics/by-labeler/:staff_id')
+  @ApiOperation({ summary: 'Get statistics by labeler' })
+  async getLabelerStatistics(@Param('staff_id') staff_id: string) {
+    return await this.aiCoreService.getLabelerStatistics(staff_id);
   }
 }

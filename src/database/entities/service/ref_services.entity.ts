@@ -8,10 +8,8 @@ import {
 import { RefServiceCategory } from './ref_service_categories.entity';
 
 export enum ResultInputType {
-  NUMERIC = 'NUMERIC', // Chỉ số số (lab)
-  TEXT = 'TEXT', // Chỉ kết luận text
-  NUMERIC_AND_TEXT = 'NUMERIC_AND_TEXT', // Số + text
-  IMAGE_AND_TEXT = 'IMAGE_AND_TEXT', // Ảnh (XQ/CT/MRI..) + text
+  NUMERIC = 'NUMERIC', // Chỉ số (lab) 
+  TEXT = 'TEXT', // text + image
 }
 
 @Entity('ref_services')
@@ -33,13 +31,13 @@ export class RefService {
   service_name: string;
 
   @Column({
-    name: 'base_price',
+    name: 'unit_price',
     type: 'numeric',
     precision: 15,
     scale: 2,
     nullable: true,
   })
-  base_price?: string;
+  unit_price?: string;
 
   @Column({
     name: 'result_input_type',

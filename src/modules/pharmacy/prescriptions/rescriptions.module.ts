@@ -1,4 +1,3 @@
-import { DrugInteraction } from 'src/database/entities/pharmacy/drug_interactions.entity';
 import { RefDrug } from 'src/database/entities/pharmacy/ref_drugs.entity';
 import { PrescriptionDetail } from 'src/database/entities/pharmacy/prescription_details.entity';
 import { Prescription } from 'src/database/entities/pharmacy/prescriptions.entity';
@@ -13,7 +12,6 @@ import { PrescriptionsController } from './prescriptions.controller';
       Prescription,
       PrescriptionDetail,
       RefDrug,
-      DrugInteraction,
     ]),
   ],
   controllers: [PrescriptionsController],

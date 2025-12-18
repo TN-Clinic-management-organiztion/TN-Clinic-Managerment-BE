@@ -46,6 +46,18 @@ export class RefDrug {
   @Column({ name: 'reorder_level', type: 'int', nullable: true })
   reorder_level?: number;
 
+  @Column({
+    name: 'unit_price',
+    type: 'numeric',
+    precision: 10,
+    scale: 2,
+    nullable: true,
+  })
+  unit_price: string;
+
+  @Column({ name: 'quantity', type: 'int', nullable: true })
+  quantity?: number;
+
   @Column({ name: 'is_active', default: true })
   is_active: boolean;
 }

@@ -36,7 +36,7 @@ export class ServicesService {
   async createService(dto: CreateServiceDto): Promise<RefService> {
     const service = this.serviceRepo.create({
       ...dto,
-      base_price: dto.base_price ? String(dto.base_price) : undefined,
+      unit_price: dto.unit_price ? String(dto.unit_price) : undefined,
     });
     return await this.serviceRepo.save(service);
   }
@@ -103,7 +103,7 @@ export class ServicesService {
     const service = await this.findOneService(id);
     Object.assign(service, {
       ...dto,
-      base_price: dto.base_price ? String(dto.base_price) : service.base_price,
+      unit_price: dto.unit_price ? String(dto.unit_price) : service.unit_price,
     });
     return await this.serviceRepo.save(service);
   }
@@ -121,12 +121,12 @@ export class ServicesService {
 
   async findAllCategories(query: QueryCategoryDto) {
     const { page = 1, limit = 20, parent_id, is_system_root, search } = query;
-
+    console.log('search all categories: ', search);
     const skip = (page - 1) * limit;
     const qb = this.categoryRepo
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.parent', 'parent');
-
+    console.log('parent_id: ', parent_id);
     if (parent_id !== undefined) {
       if (parent_id === null) {
         qb.andWhere('category.parent_id IS NULL');
@@ -432,5 +432,104 @@ export class ServicesService {
     );
 
     return rooms;
+  }
+
+  // ======================= Lọc những service được chỉ định
+  async getAssignedServicesByEncounter(encounterId: string) {
+    const rows = await this.dataSource.query(
+      `
+    WITH tickets AS (
+      SELECT
+        qt.room_id,
+        qt.display_number,
+        qt.status,
+        qt.service_ids,
+        qt.created_at
+      FROM queue_tickets qt
+      WHERE qt.encounter_id = $1
+        AND qt.ticket_type = 'SERVICE'
+        AND qt.service_ids IS NOT NULL
+    ),
+    expanded AS (
+      SELECT
+        t.room_id,
+        UNNEST(t.service_ids) AS service_id
+      FROM tickets t
+    ),
+    latest_ticket AS (
+      SELECT DISTINCT ON (t.room_id)
+        t.room_id,
+        t.display_number,
+        t.status
+      FROM tickets t
+      ORDER BY t.room_id, t.created_at DESC
+    )
+    SELECT
+      e.room_id,
+      r.room_name,
+      lt.display_number,
+      lt.status,
+      s.service_id,
+      s.service_name,
+      s.unit_price,
+      s.category_id,
+      s.result_input_type,
+      c.category_name
+    FROM expanded e
+    JOIN ref_services s ON s.service_id = e.service_id
+    LEFT JOIN ref_service_categories c ON c.category_id = s.category_id
+    LEFT JOIN org_rooms r ON r.room_id = e.room_id
+    LEFT JOIN latest_ticket lt ON lt.room_id = e.room_id
+    ORDER BY e.room_id, s.service_id;
+    `,
+      [encounterId],
+    );
+
+    // Group theo room
+    const map = new Map<
+      number,
+      {
+        room_id: number;
+        room_name?: string;
+        status?: string;
+        display_number?: number;
+        services: any[];
+      }
+    >();
+
+    for (const row of rows) {
+      const room_id = Number(row.room_id);
+
+      if (!map.has(room_id)) {
+        map.set(room_id, {
+          room_id,
+          room_name: row.room_name ?? undefined,
+          status: row.status ?? undefined,
+          display_number:
+            row.display_number != null ? Number(row.display_number) : undefined,
+          services: [],
+        });
+      }
+
+      map.get(room_id)!.services.push({
+        service_id: Number(row.service_id),
+        service_name: row.service_name,
+        unit_price: row.unit_price, // numeric -> string
+        category_id: row.category_id ?? null,
+        result_input_type: row.result_input_type ?? null,
+        category_name: row.category_name ?? null,
+      });
+    }
+
+    const data = Array.from(map.values());
+    const totalServices = rows.length;
+
+    return {
+      data,
+      meta: {
+        totalRooms: data.length,
+        totalServices,
+      },
+    };
   }
 }

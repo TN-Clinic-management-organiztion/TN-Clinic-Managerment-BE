@@ -2,7 +2,7 @@
 CREATE TABLE org_rooms (
     room_id SERIAL PRIMARY KEY,
     room_name VARCHAR(100) NOT NULL,
-    room_type VARCHAR(50) CHECK (room_type IN ('CLINIC', 'IMAGING', 'LAB', 'PHARMACY', 'CASHIER', 'ADMIN')),
+    room_type VARCHAR(50) CHECK (room_type IN ('CLINIC', 'PARACLINICAL', 'PHARMACY', 'CASHIER', 'ADMIN')),
     is_active BOOLEAN DEFAULT TRUE
 ); -- Done
 
@@ -55,20 +55,7 @@ CREATE TABLE patient_profiles (
 	  deleted_at TIMESTAMPTZ
 ); -- Done
 
--- BẢNG ĐẶT LỊCH & HÀNG ĐỢI
-CREATE TABLE online_appointments (
-    appointment_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    patient_id UUID NOT NULL REFERENCES patient_profiles(patient_id),
-    appointment_date DATE NOT NULL,
-    appointment_time TIME NOT NULL,
-    desired_room_id INT REFERENCES org_rooms(room_id), -- Chuyên khoa mong muốn
-    desired_doctor_id UUID REFERENCES staff_profiles(staff_id), -- Bác sĩ mong muốn
-    symptoms TEXT, -- Triệu chứng sơ khai (không bắt buộc)
-    status VARCHAR(50) DEFAULT 'CONFIRMED',
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-	  deleted_at TIMESTAMPTZ
-); -- Done
-
+-- BẢNG HÀNG ĐỢI
 CREATE TABLE queue_counters (
     counter_id SERIAL PRIMARY KEY,
     room_id INT NOT NULL REFERENCES org_rooms(room_id),
@@ -90,6 +77,17 @@ CREATE TABLE medical_encounters (
         'AWAITING_CLS', 'IN_CLS', 'CLS_COMPLETED', 'RESULTS_READY', 'COMPLETED'
     )),
     initial_symptoms TEXT,
+
+    weight NUMERIC(5,2),        -- Cân nặng (kg), ví dụ: 65.50
+    height NUMERIC(5,2),        -- Chiều cao (cm), ví dụ: 170.5
+    bmi NUMERIC(4,2),           -- Chỉ số khối cơ thể (tự tính hoặc lưu cứng)
+    temperature NUMERIC(4,1),   -- Nhiệt độ (°C), ví dụ: 37.5
+    pulse INT,                  -- Mạch (lần/phút)
+    respiratory_rate INT,       -- Nhịp thở (lần/phút)
+    bp_systolic INT,            -- Huyết áp tâm thu (mmHg) - Số trên (ví dụ 120)
+    bp_diastolic INT,           -- Huyết áp tâm trương (mmHg) - Số dưới (ví dụ 80)
+    sp_o2 NUMERIC(5,2),         -- Nồng độ oxy trong máu (%) - Tùy chọn
+
     final_icd_code VARCHAR(10) REFERENCES ref_icd10(icd_code),
     doctor_conclusion TEXT,
 	  deleted_at TIMESTAMPTZ
@@ -97,7 +95,6 @@ CREATE TABLE medical_encounters (
 
 CREATE TABLE queue_tickets (
     ticket_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    appointment_id UUID REFERENCES online_appointments(appointment_id),
     encounter_id UUID REFERENCES medical_encounters(encounter_id),
     room_id INT NOT NULL REFERENCES org_rooms(room_id),
     ticket_type VARCHAR(20) NOT NULL CHECK (ticket_type IN ('REGISTRATION', 'CONSULTATION', 'SERVICE')),
@@ -107,23 +104,12 @@ CREATE TABLE queue_tickets (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     called_at TIMESTAMPTZ,
     started_at TIMESTAMPTZ,
-	  service_ids INT[],
+    service_ids INT[],
     completed_at TIMESTAMPTZ
 ); -- Done
 
 -- Index cho mảng service_ids
 CREATE INDEX idx_queue_tickets_service_ids ON queue_tickets USING GIN(service_ids);
-
-
--- Lưu ý phải có bảng ref_services
-CREATE TABLE encounter_cls_tracking (
-    track_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    encounter_id UUID REFERENCES medical_encounters(encounter_id),
-    service_id INT REFERENCES ref_services(service_id),
-    status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED')),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    completed_at TIMESTAMPTZ
-); -- Done
 
 -- BẢNG DỊCH VỤ & KẾT QUẢ
 CREATE TABLE ref_icd10 (
@@ -147,8 +133,8 @@ CREATE TABLE ref_services (
     service_id SERIAL PRIMARY KEY,
     category_id INT REFERENCES ref_service_categories(category_id),
     service_name VARCHAR(255) NOT NULL,
-    base_price DECIMAL(15,2),
-    result_input_type VARCHAR(50) CHECK (result_input_type IN ('NUMERIC', 'TEXT', 'NUMERIC_AND_TEXT', 'IMAGE_AND_TEXT'))
+    unit_price DECIMAL(15,2),
+    result_input_type VARCHAR(50) CHECK (result_input_type IN ('NUMERIC', 'TEXT'))
 ); -- Done
 
 CREATE TABLE room_services (
@@ -187,28 +173,14 @@ CREATE TABLE service_request_items (
     item_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     request_id UUID REFERENCES service_requests(request_id),
     service_id INT REFERENCES ref_services(service_id),
-    status VARCHAR(50) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'))
-); -- Done
-
-CREATE TABLE service_report_templates (
-    template_id SERIAL PRIMARY KEY,
-    service_id INT REFERENCES ref_services(service_id),
-    created_by UUID REFERENCES staff_profiles(staff_id),
-    template_name VARCHAR(150) NOT NULL,
-    body_html TEXT NOT NULL,
-    is_default BOOLEAN DEFAULT FALSE,
-    is_public BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
 ); -- Done
 
 CREATE TABLE service_results (
     result_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     request_item_id UUID REFERENCES service_request_items(item_id),
     technician_id UUID REFERENCES staff_profiles(staff_id),
-    approving_doctor_id UUID REFERENCES staff_profiles(staff_id),
     main_conclusion TEXT,
     report_body_html TEXT,
-    used_template_id INT REFERENCES service_report_templates(template_id),
     is_abnormal BOOLEAN DEFAULT FALSE,
     result_time TIMESTAMPTZ DEFAULT NOW(),
 	  deleted_at TIMESTAMPTZ
@@ -289,18 +261,6 @@ CREATE TABLE annotation_project_images (
     PRIMARY KEY (project_id, image_id)
 ); -- Done
 
-
-CREATE TABLE result_discussions (
-    discussion_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    result_id UUID REFERENCES service_results(result_id),
-    sender_id UUID REFERENCES staff_profiles(staff_id),
-    message_content TEXT NOT NULL,
-    parent_id UUID REFERENCES result_discussions(discussion_id),
-    lft INT NOT NULL,
-    rgt INT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-); -- Done
-
 -- BẢNG QUẢN LÝ KHO & THUỐC
 CREATE TABLE ref_drug_categories (
     category_id SERIAL PRIMARY KEY,
@@ -323,39 +283,14 @@ CREATE TABLE ref_drugs (
     unit_name VARCHAR(50),                  -- Đơn vị xuất/kê: "viên", "ống", "lọ", "ml"
 
     reorder_level INT,                      -- Ngưỡng tồn tối thiểu để cảnh báo nhập
+	unit_price DECIMAL(10,2),
+	quantity INT,
     is_active BOOLEAN DEFAULT TRUE
-); -- Done
-
-CREATE TABLE drug_interactions (
-    interaction_id SERIAL PRIMARY KEY,
-    drug_a_id INT REFERENCES ref_drugs(drug_id),
-    drug_b_id INT REFERENCES ref_drugs(drug_id),
-    severity VARCHAR(20),                   -- Ví dụ: "MINOR", "MODERATE", "MAJOR"
-    warning_message TEXT,
-    CONSTRAINT uq_interaction_pair UNIQUE (drug_a_id, drug_b_id)
-); -- Done
-
-CREATE TABLE inventory_locations (
-    location_id SERIAL PRIMARY KEY,
-    path LTREE UNIQUE NOT NULL,             -- Ví dụ: "PHARMACY.ROOM1.SHELF3.BIN2"
-    location_name VARCHAR(100)
-); -- Done
-
-CREATE TABLE drug_suppliers (
-    supplier_id SERIAL PRIMARY KEY,
-    supplier_name VARCHAR(255) NOT NULL,
-    contact_person VARCHAR(100),
-    phone VARCHAR(20),
-    email VARCHAR(150),
-    address TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
 ); -- Done
 
 CREATE TABLE drug_imports (
     import_id SERIAL PRIMARY KEY,
     import_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    supplier_id INT REFERENCES drug_suppliers(supplier_id),
     total_amount DECIMAL(15,2),             -- Tổng tiền hóa đơn (nếu cần)
     invoice_number VARCHAR(100),            -- Số hóa đơn nhà cung cấp
     imported_by UUID REFERENCES staff_profiles(staff_id), -- Nhân viên nhập kho
@@ -368,29 +303,10 @@ CREATE TABLE drug_import_details (
     import_id INT NOT NULL REFERENCES drug_imports(import_id),
 
     drug_id INT NOT NULL REFERENCES ref_drugs(drug_id),
-	batch_number VARCHAR(50),
-    expiry_date DATE NOT NULL,
     quantity INT NOT NULL,                  -- Số lượng nhập
     unit_price DECIMAL(10,2) NOT NULL       -- Giá nhập một đơn vị
-
-    -- Nếu cần có thêm thuế, chiết khấu... có thể bổ sung sau
 ); -- Done
 
-CREATE TABLE drug_batches (
-    batch_id SERIAL PRIMARY KEY,
-
-    import_detail_id INT NOT NULL REFERENCES drug_import_details(import_detail_id),
-    drug_id INT NOT NULL REFERENCES ref_drugs(drug_id),
-	
-	batch_number VARCHAR(50),
-	expiry_date DATE NOT NULL,
-	
-	quantity_initial INT NOT NULL,
-    quantity_current INT NOT NULL,          -- Số lượng còn lại trong kho
-
-    location_id INT REFERENCES inventory_locations(location_id),
-    is_opened_box BOOLEAN DEFAULT FALSE     -- Đã khui hộp/vỉ hay chưa
-);
 
 -- Gợi ý: quantity_current ban đầu = quantity của drug_import_details
 -- Sau đó trừ dần khi xuất kho / cấp phát.
@@ -401,8 +317,6 @@ CREATE TABLE prescriptions (
 
     prescribing_doctor_id UUID REFERENCES staff_profiles(staff_id),     -- Bác sĩ kê đơn
     dispensing_pharmacist_id UUID REFERENCES staff_profiles(staff_id),  -- Dược sĩ bốc thuốc
-
-    interaction_override_reason TEXT,           -- Lý do bỏ qua cảnh báo tương tác (nếu có)
 
     status VARCHAR(20) DEFAULT 'DRAFT'
         CHECK (status IN ('DRAFT','ISSUED','DISPENSED','CANCELLED')),
@@ -419,18 +333,6 @@ CREATE TABLE prescription_details (
     quantity INT CHECK (quantity > 0),
     usage_note TEXT                             -- Cách dùng: "1 viên x 2 lần/ngày sau ăn"
 ); -- Done
-
-CREATE TABLE prescription_batch_dispenses (
-    id BIGSERIAL PRIMARY KEY,
-    
-    detail_id UUID NOT NULL REFERENCES prescription_details(detail_id),
-    batch_id INT NOT NULL REFERENCES drug_batches(batch_id),
-
-    quantity INT NOT NULL CHECK (quantity > 0),  -- số lượng xuất từ lô này
-
-    dispensed_at TIMESTAMPTZ DEFAULT NOW(),
-); -- Done
-
 
 -- BẢNG TÀI CHÍNH & NHÂN SỰ
 CREATE TABLE invoices (
@@ -491,135 +393,6 @@ OR (item_type = 'DRUG' AND prescription_detail_id IS NOT NULL AND service_item_i
 OR (item_type = 'CONSULTATION' AND service_item_id IS NULL AND prescription_detail_id IS NULL)
 OR (item_type = 'OTHER')
 ); -- Done
-
-
--- BẢNG CHẤM CÔNG
-CREATE TABLE hr_shifts (
-    shift_id SERIAL PRIMARY KEY,
-    shift_name VARCHAR(50),
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
-	break_start TIME,
-	break_end TIME,
-	work_day_credit DECIMAL(3,2) NOT NULL DEFAULT 1.0,
-	CONSTRAINT chk_shift_time CHECK (
-        break_start IS NULL 
-        OR (start_time <= break_start AND break_start < break_end AND break_end <= end_time)
-    )
-); -- Done
-
-CREATE TABLE hr_leave_requests (
-    request_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    staff_id UUID NOT NULL REFERENCES staff_profiles(staff_id),
-    leave_type VARCHAR(20) NOT NULL CHECK (leave_type IN ('ANNUAL', 'SICK', 'EMERGENCY')),
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    total_days DECIMAL(4,1) NOT NULL CHECK (total_days > 0),
-    status VARCHAR(20) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
-    decision_by UUID REFERENCES staff_profiles(staff_id),
-    decision_at TIMESTAMPTZ,
-    reason TEXT NOT NULL,
-    contact_info VARCHAR(100),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
-    CONSTRAINT chk_valid_dates CHECK (end_date >= start_date)
-); -- Done
-
-CREATE TABLE hr_time_attendance (
-    attendance_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-
-    staff_id UUID NOT NULL REFERENCES staff_profiles(staff_id),
-    shift_id INT REFERENCES hr_shifts(shift_id),
-
-    work_date DATE NOT NULL DEFAULT CURRENT_DATE,
-
-    -- Check-in
-    check_in_time TIMESTAMPTZ,
-    check_in_ip INET,
-
-    -- Check-out
-    check_out_time TIMESTAMPTZ,
-    check_out_ip INET,
-
-    -- Calculated fields
-    actual_hours DECIMAL(4,2),
-	is_late BOOLEAN DEFAULT FALSE,
-    late_minutes INT DEFAULT 0,
-	is_early_leave BOOLEAN DEFAULT FALSE,
-    early_leave_minutes INT DEFAULT 0,
-    overtime_minutes INT DEFAULT 0,
-
-	status VARCHAR(20) NOT NULL DEFAULT 'PRESENT' 
-        CHECK (status IN ('PRESENT', 'ABSENT', 'LEAVE', 'HOLIDAY')),
-
-    leave_request_id UUID REFERENCES hr_leave_requests(request_id),
-
-    admin_notes TEXT,
-
-    CONSTRAINT uk_staff_work_date UNIQUE (staff_id, work_date)
-); -- Done
-
-CREATE TABLE hr_salary_config (
-    config_id SERIAL PRIMARY KEY,
-    staff_id UUID NOT NULL REFERENCES staff_profiles(staff_id),
-    base_salary DECIMAL(10,2) NOT NULL CHECK (base_salary > 0),
-    standard_days_per_month SMALLINT DEFAULT 26 CHECK (standard_days_per_month > 0),
-    effective_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    end_date DATE,
-    CONSTRAINT uk_staff_effective_date UNIQUE (staff_id, effective_date)
-); -- Done
-
-CREATE TABLE hr_allowances (
-    allowance_id SERIAL PRIMARY KEY,
-    allowance_type VARCHAR(50) NOT NULL,
-    amount DECIMAL(10,2) NOT NULL CHECK (amount >= 0),
-
-    target_type VARCHAR(10) NOT NULL 
-        CHECK (target_type IN ('INDIVIDUAL', 'GROUP')),
-
-    staff_id UUID REFERENCES staff_profiles(staff_id),
-    role_id INT REFERENCES sys_roles(role_id),
-
-    start_date DATE NOT NULL,
-    end_date DATE,
-    description TEXT,
-
-    created_by UUID NOT NULL REFERENCES staff_profiles(staff_id),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-
-    CONSTRAINT chk_allowance_target CHECK (
-        (target_type = 'INDIVIDUAL' AND staff_id IS NOT NULL AND role_id IS NULL) OR
-        (target_type = 'GROUP' AND staff_id IS NULL AND role_id IS NOT NULL)
-    ),
-
-    CONSTRAINT chk_allowance_dates CHECK (
-        end_date IS NULL OR end_date >= start_date
-    )
-); -- Done
-
-
-CREATE TABLE hr_payroll (
-    payroll_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    staff_id UUID NOT NULL REFERENCES staff_profiles(staff_id),
-    payroll_month DATE NOT NULL,
-    work_days DECIMAL(4,2) NOT NULL DEFAULT 0,
-    leave_days DECIMAL(4,2) NOT NULL DEFAULT 0,
-    total_paid_days DECIMAL(4,2) NOT NULL,
-    overtime_hours DECIMAL(5,2) NOT NULL DEFAULT 0,
-    base_salary DECIMAL(10,2) NOT NULL,
-    actual_salary DECIMAL(10,2) NOT NULL,
-    overtime_salary DECIMAL(10,2) NOT NULL DEFAULT 0,
-    total_allowances DECIMAL(10,2) NOT NULL DEFAULT 0,
-    total_bonus DECIMAL(10,2) NOT NULL DEFAULT 0,
-    total_penalty DECIMAL(10,2) NOT NULL DEFAULT 0,
-    net_salary DECIMAL(10,2) NOT NULL,
-    status VARCHAR(20) DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'CALCULATED', 'APPROVED', 'PAID')),
-    approved_by UUID REFERENCES staff_profiles(staff_id),
-    paid_at TIMESTAMPTZ, -- Thời điểm trả lương
-    calculated_at TIMESTAMPTZ DEFAULT NOW(), -- Thời điểm hệ thống chạy tính lương
-    notes TEXT,
-    CONSTRAINT uk_staff_payroll_month UNIQUE (staff_id, payroll_month)
-);
 
 -- BẢNG HỆ THỐNG
 CREATE TABLE system_notifications (
