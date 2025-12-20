@@ -8,20 +8,12 @@ export class CreateResultDto {
   technician_id: string;
 
   @IsOptional()
-  @IsUUID()
-  approving_doctor_id?: string;
-
-  @IsOptional()
   @IsString()
   main_conclusion?: string;
 
   @IsOptional()
   @IsString()
   report_body_html?: string;
-
-  @IsOptional()
-  @IsInt()
-  used_template_id?: number;
 
   @IsOptional()
   @IsBoolean()

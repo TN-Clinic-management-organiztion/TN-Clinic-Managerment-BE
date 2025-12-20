@@ -1,10 +1,17 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Invoice } from './invoices.entity';
 import { ServiceRequestItem } from '../service/service_request_items.entity';
-import { PrescriptionDetail } from '../pharmacy/prescription_details.entity';
 
 export enum InvoiceItemType {
-  CONSULTATION = 'CONSULTATION', SERVICE = 'SERVICE', DRUG = 'DRUG', OTHER = 'OTHER',
+  CONSULTATION = 'CONSULTATION',
+  SERVICE = 'SERVICE',
+  OTHER = 'OTHER',
 }
 
 @Entity('invoice_items')
@@ -19,9 +26,6 @@ export class InvoiceItem {
   @Column({ name: 'service_item_id', type: 'uuid', nullable: true })
   service_item_id?: string | null;
 
-  @Column({ name: 'prescription_detail_id', type: 'uuid', nullable: true })
-  prescription_detail_id?: string | null;
-
   // --- RELATIONS ---
   @ManyToOne(() => Invoice, { nullable: false })
   @JoinColumn({ name: 'invoice_id', referencedColumnName: 'invoice_id' })
@@ -31,15 +35,11 @@ export class InvoiceItem {
   @JoinColumn({ name: 'service_item_id', referencedColumnName: 'item_id' })
   service_item?: ServiceRequestItem;
 
-  @ManyToOne(() => PrescriptionDetail, { nullable: true })
-  @JoinColumn({ name: 'prescription_detail_id', referencedColumnName: 'detail_id' })
-  prescription_detail?: PrescriptionDetail;
-
   // --- COLUMNS ---
   @Column({ name: 'item_type', type: 'enum', enum: InvoiceItemType })
   item_type: InvoiceItemType;
 
-  @Column({ name: 'description', type: 'text' })
+  @Column({ name: 'description', type: 'text', nullable: true })
   description: string;
 
   @Column({ name: 'quantity', type: 'int' })

@@ -16,6 +16,7 @@ import {
   UpdateInvoiceDto,
   QueryInvoiceDto,
   AddInvoiceItemDto,
+  GenerateInvoiceFromEncounterDto,
 } from './dto/invoice.dto';
 import { InvoiceStatus } from '../../../database/entities/finance/invoices.entity';
 
@@ -109,5 +110,33 @@ export class InvoicesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.invoicesService.remove(id);
+  }
+
+  /**
+   * TỰ ĐỘNG TẠO INVOICE TỪ ENCOUNTER
+   * POST /invoices/generate-from-encounter
+   */
+  @Post('generate-from-encounter')
+  @HttpCode(HttpStatus.CREATED)
+  generateFromEncounter(@Body() dto: GenerateInvoiceFromEncounterDto) {
+    return this.invoicesService.generateInvoiceFromEncounter(dto);
+  }
+
+  /**
+   * LẤY DANH SÁCH ITEMS CHƯA THANH TOÁN
+   * GET /invoices/unpaid-items/:encounterId
+   */
+  @Get('unpaid-items/:encounterId')
+  getUnpaidItems(@Param('encounterId') encounterId: string) {
+    return this.invoicesService.getUnpaidItemsByEncounter(encounterId);
+  }
+
+  /**
+   * CHECK PAYMENT STATUS
+   * GET /invoices/payment-status/:encounterId
+   */
+  @Get('payment-status/:encounterId')
+  checkPaymentStatus(@Param('encounterId') encounterId: string) {
+    return this.invoicesService.checkEncounterPaymentStatus(encounterId);
   }
 }

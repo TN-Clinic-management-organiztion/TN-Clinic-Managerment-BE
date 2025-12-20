@@ -9,9 +9,9 @@ export class CreateResultImageDto {
   @IsString()
   public_id?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsUrl()
-  original_image_url: string;
+  original_image_url?: string;
 
   @IsOptional()
   @IsString()

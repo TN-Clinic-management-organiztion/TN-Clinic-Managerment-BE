@@ -8,6 +8,7 @@ import {
   IsDateString,
   IsNotEmpty,
   Min,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
@@ -62,10 +63,6 @@ export class AddInvoiceItemDto {
   @IsUUID()
   service_item_id?: string;
 
-  @IsOptional()
-  @IsUUID()
-  prescription_detail_id?: string;
-
   @IsNotEmpty()
   @IsString()
   description: string;
@@ -79,4 +76,14 @@ export class AddInvoiceItemDto {
   @IsNotEmpty()
   @IsString()
   unit_price: string; // Numeric as string
+}
+
+export class GenerateInvoiceFromEncounterDto {
+  @IsNotEmpty()
+  @IsUUID()
+  encounter_id: string;
+
+  @IsNotEmpty()
+  @IsUUID()
+  cashier_id: string;
 }

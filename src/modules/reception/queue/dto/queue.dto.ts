@@ -36,17 +36,6 @@ export class CreateTicketDto {
   service_ids?: number[];
 }
 
-export class CreateTicketFromAppointmentDto {
-  @IsNotEmpty()
-  @IsUUID()
-  appointment_id: string;
-
-  @IsNotEmpty()
-  @Type(() => Number)
-  @IsInt()
-  room_id: number;
-}
-
 export class UpdateTicketDto {
   @IsOptional()
   @IsEnum(QueueStatus)

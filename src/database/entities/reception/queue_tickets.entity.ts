@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { MedicalEncounter } from '../clinical/medical_encounters.entity';
 import { OrgRoom } from '../auth/org_rooms.entity';
-import { OnlineAppointment } from './online_appointments.entity';
 
 export enum QueueTicketType {
   REGISTRATION = 'REGISTRATION',
@@ -27,19 +26,10 @@ export enum QueueStatus {
   COMPLETED = 'COMPLETED',
   SKIPPED = 'SKIPPED',
 }
-@Index(
-  'uq_queue_ticket_appointment',
-  ['appointment_id'],
-  { unique: true, where: `"appointment_id" IS NOT NULL` } // Postgres partial unique index
-)
 @Entity('queue_tickets')
 export class QueueTicket {
   @PrimaryGeneratedColumn('uuid', { name: 'ticket_id' })
   ticket_id: string;
-
-  // --- RAW FKs ---
-  @Column({ name: 'appointment_id', type: 'uuid', nullable: true })
-  appointment_id?: string | null;
 
   @Column({ name: 'encounter_id', type: 'uuid', nullable: true })
   encounter_id?: string | null;
@@ -48,13 +38,6 @@ export class QueueTicket {
   room_id: number;
 
   // --- RELATIONS ---
-  @ManyToOne(() => OnlineAppointment, { nullable: true })
-  @JoinColumn({
-    name: 'appointment_id',
-    referencedColumnName: 'appointment_id',
-  })
-  appointment?: OnlineAppointment;
-
   @ManyToOne(() => MedicalEncounter, { nullable: true })
   @JoinColumn({ name: 'encounter_id', referencedColumnName: 'encounter_id' })
   encounter?: MedicalEncounter;
