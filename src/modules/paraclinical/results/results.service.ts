@@ -55,6 +55,8 @@ export class ResultsService {
       .createQueryBuilder('result')
       .leftJoinAndSelect('result.request_item', 'item')
       .leftJoinAndSelect('result.technician', 'tech')
+      .leftJoinAndSelect('result.images', 'image')
+      .leftJoinAndSelect('image.annotations', 'ann')
       .where('result.deleted_at IS NULL');
 
     if (request_item_id) {
@@ -101,10 +103,7 @@ export class ResultsService {
   async findOneResult(id: string): Promise<ServiceResult> {
     const result = await this.resultRepo.findOne({
       where: { result_id: id, deleted_at: IsNull() },
-      relations: [
-        'request_item',
-        'technician',
-      ],
+      relations: ['request_item', 'technician'],
     });
 
     if (!result) throw new NotFoundException(`Result with ID ${id} not found`);
@@ -153,6 +152,8 @@ export class ResultsService {
       if (!file) {
         throw new BadRequestException('File is required');
       }
+
+      console.log('Vào được hàm!');
 
       const cloudImage = await this.cloudinaryService.uploadMedicalImage(file);
 

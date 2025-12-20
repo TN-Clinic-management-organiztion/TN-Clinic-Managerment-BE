@@ -7,11 +7,6 @@ import {
 } from 'typeorm';
 import { RefServiceCategory } from './ref_service_categories.entity';
 
-export enum ResultInputType {
-  NUMERIC = 'NUMERIC', // Chỉ số (lab) 
-  TEXT = 'TEXT', // text + image
-}
-
 @Entity('ref_services')
 export class RefService {
   @PrimaryGeneratedColumn({ name: 'service_id' })
@@ -38,12 +33,4 @@ export class RefService {
     nullable: true,
   })
   unit_price?: string;
-
-  @Column({
-    name: 'result_input_type',
-    type: 'enum',
-    enum: ResultInputType,
-    nullable: true,
-  })
-  result_input_type?: ResultInputType;
 }

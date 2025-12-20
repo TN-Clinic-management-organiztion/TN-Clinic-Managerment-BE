@@ -4,7 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 // Entities
 import { RefService } from 'src/database/entities/service/ref_services.entity';
 import { RefServiceCategory } from 'src/database/entities/service/ref_service_categories.entity';
-import { RefLabIndicator } from 'src/database/entities/service/ref_lab_indicators.entity';
 import { ServiceRequest } from 'src/database/entities/service/service_requests.entity';
 import { ServiceRequestItem } from 'src/database/entities/service/service_request_items.entity';
 import { ServiceResult } from 'src/database/entities/service/service_results.entity';
@@ -31,7 +30,6 @@ import { CloudinaryModule } from 'src/shared/cloudinary/cloudinary.module';
       // Service entities
       RefService,
       RefServiceCategory,
-      RefLabIndicator,
       
       // Order entities
       ServiceRequest,

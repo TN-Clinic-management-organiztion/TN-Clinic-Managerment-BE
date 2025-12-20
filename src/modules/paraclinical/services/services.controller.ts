@@ -16,11 +16,7 @@ import { QueryServiceDto } from './dto/services/query-service.dto';
 import { CreateCategoryDto } from './dto/categories/create-category.dto';
 import { UpdateCategoryDto } from './dto/categories/update-category.dto';
 import { QueryCategoryDto } from './dto/categories/query-category.dto';
-import { CreateIndicatorDto } from './dto/indicators/create-indicator.dto';
-import { UpdateIndicatorDto } from './dto/indicators/update-indicator.dto';
-import { QueryIndicatorDto } from './dto/indicators/query-indicator.dto';
-import { LinkServiceIndicatorDto } from './dto/service-indicators/link-indicator.dto';
-import { LinkRoomServiceDto } from './dto/service-indicators/link-room-service.dto';
+import { LinkRoomServiceDto } from './dto/services/link-room-service.dto';
 
 @ApiTags('Services')
 @Controller('services')
@@ -94,62 +90,6 @@ export class ServicesController {
   @ApiOperation({ summary: 'Delete category' })
   removeCategory(@Param('id') id: string) {
     return this.servicesService.removeCategory(+id);
-  }
-
-  // ==================== INDICATORS ====================
-  @Post('indicators')
-  @ApiOperation({ summary: 'Create lab indicator' })
-  createIndicator(@Body() dto: CreateIndicatorDto) {
-    return this.servicesService.createIndicator(dto);
-  }
-
-  @Get('indicators')
-  @ApiOperation({ summary: 'Get all indicators with pagination' })
-  findAllIndicators(@Query() query: QueryIndicatorDto) {
-    return this.servicesService.findAllIndicators(query);
-  }
-
-  @Get('indicators/:id')
-  @ApiOperation({ summary: 'Get indicator by ID' })
-  findOneIndicator(@Param('id') id: string) {
-    return this.servicesService.findOneIndicator(+id);
-  }
-
-  @Patch('indicators/:id')
-  @ApiOperation({ summary: 'Update indicator' })
-  updateIndicator(@Param('id') id: string, @Body() dto: UpdateIndicatorDto) {
-    return this.servicesService.updateIndicator(+id, dto);
-  }
-
-  @Delete('indicators/:id')
-  @ApiOperation({ summary: 'Delete indicator' })
-  removeIndicator(@Param('id') id: string) {
-    return this.servicesService.removeIndicator(+id);
-  }
-
-  // ==================== SERVICE-INDICATOR LINKS ====================
-  @Post('service-indicator/link-indicator')
-  @ApiOperation({ summary: 'Link indicator to service' })
-  linkServiceIndicator(@Body() dto: LinkServiceIndicatorDto) {
-    return this.servicesService.linkServiceIndicator(dto);
-  }
-
-  @Delete('service-indicator/:serviceId/indicators/:indicatorId')
-  @ApiOperation({ summary: 'Unlink indicator from service' })
-  unlinkServiceIndicator(
-    @Param('serviceId') serviceId: string,
-    @Param('indicatorId') indicatorId: string,
-  ) {
-    return this.servicesService.unlinkServiceIndicator(
-      +serviceId,
-      +indicatorId,
-    );
-  }
-
-  @Get('service-indicator/:id/indicators')
-  @ApiOperation({ summary: 'Get all indicators for a service' })
-  getServiceIndicators(@Param('id') id: string) {
-    return this.servicesService.getServiceIndicators(+id);
   }
 
   // ==================== ROOM-SERVICE LINKS ====================

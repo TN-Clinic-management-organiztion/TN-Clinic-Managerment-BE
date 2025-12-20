@@ -63,10 +63,6 @@ export class AddInvoiceItemDto {
   @IsUUID()
   service_item_id?: string;
 
-  @IsOptional()
-  @IsUUID()
-  prescription_detail_id?: string;
-
   @IsNotEmpty()
   @IsString()
   description: string;

@@ -89,7 +89,6 @@ export class InvoicesService {
         invoice_id: invoiceId,
         item_type: dto.item_type,
         service_item_id: dto.service_item_id,
-        prescription_detail_id: dto.prescription_detail_id,
         description: dto.description,
         quantity: dto.quantity,
         unit_price: dto.unit_price,
@@ -386,14 +385,8 @@ export class InvoicesService {
         dto.encounter_id,
       );
 
-      const drugsAdded = await this.addUnpaidDrugs(
-        manager,
-        savedInvoice.invoice_id,
-        dto.encounter_id,
-      );
-
       // 4. Nếu không có gì để thanh toán
-      if (servicesAdded === 0 && drugsAdded === 0) {
+      if (servicesAdded === 0) {
         throw new BadRequestException('Không có mục nào cần thanh toán');
       }
 
@@ -456,60 +449,6 @@ export class InvoicesService {
   }
 
   /**
-   * ✅ THÊM CÁC THUỐC CHƯA THANH TOÁN
-   */
-  private async addUnpaidDrugs(
-    manager: any,
-    invoiceId: string,
-    encounterId: string,
-  ) {
-    const unpaidDrugs = await manager.query(
-      `
-    SELECT 
-      pd.detail_id,
-      d.drug_name,
-      pd.quantity,
-      COALESCE(d.unit_price, 0) as unit_price
-    FROM prescription_details pd
-    INNER JOIN prescriptions p ON pd.prescription_id = p.prescription_id
-    INNER JOIN ref_drugs d ON pd.drug_id = d.drug_id
-    WHERE p.encounter_id = $1
-      AND p.deleted_at IS NULL
-      AND p.status != 'CANCELLED'
-      AND NOT EXISTS (
-        SELECT 1 FROM invoice_items ii
-        WHERE ii.prescription_detail_id = pd.detail_id
-      )
-    `,
-      [encounterId],
-    );
-
-    // console.log('unpaidDrugs: ', unpaidDrugs);
-
-    for (const drug of unpaidDrugs) {
-      const unitPrice = String(drug.unit_price ?? 0);
-      const quantity = Number(drug.quantity ?? 1);
-      const lineAmount = (parseFloat(unitPrice) * quantity).toFixed(2);
-
-      const item = manager.create(InvoiceItem, {
-        invoice_id: invoiceId,
-        item_type: InvoiceItemType.DRUG,
-        prescription_detail_id: drug.detail_id,
-        description: drug.drug_name,
-        quantity,
-        unit_price: unitPrice,
-        line_amount: lineAmount,
-      });
-
-      await manager.save(item);
-    }
-
-    // console.log('Debug');
-
-    return unpaidDrugs.length;
-  }
-
-  /**
    * ✅ LẤY DANH SÁCH ITEMS CHƯA THANH TOÁN (Dùng cho FE xem trước)
    */
   async getUnpaidItemsByEncounter(encounterId: string) {
@@ -537,31 +476,8 @@ export class InvoicesService {
       [encounterId],
     );
 
-    // Thuốc chưa thanh toán
-    const unpaidDrugs = await this.dataSource.query(
-      `
-  SELECT 
-    'DRUG' as item_type,
-    pd.detail_id as item_id,
-    d.drug_name as description,
-    pd.quantity,
-    COALESCE(d.unit_price, 0) as unit_price,
-    p.status
-  FROM prescription_details pd
-  INNER JOIN prescriptions p ON pd.prescription_id = p.prescription_id
-  INNER JOIN ref_drugs d ON pd.drug_id = d.drug_id
-  WHERE p.encounter_id = $1
-    AND p.deleted_at IS NULL
-    AND p.status != 'CANCELLED'
-    AND NOT EXISTS (
-      SELECT 1 FROM invoice_items ii
-      WHERE ii.prescription_detail_id = pd.detail_id
-    )
-  `,
-      [encounterId],
-    );
 
-    const allUnpaidItems = [...unpaidServices, ...unpaidDrugs];
+    const allUnpaidItems = [...unpaidServices,];
 
     const totalAmount = allUnpaidItems.reduce((sum, item) => {
       const price = parseFloat(item.unit_price || 0);

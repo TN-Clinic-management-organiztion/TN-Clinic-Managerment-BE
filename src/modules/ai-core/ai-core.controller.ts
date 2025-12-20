@@ -1,28 +1,32 @@
 // src/modules/ai-core/ai-core.controller.ts
 import { RunAiDetectionDto } from './dto/run-ai-detection.dto.ts';
-import { 
-  Body, 
-  Controller, 
-  DefaultValuePipe, 
-  Get, 
-  HttpCode, 
-  HttpStatus, 
-  NotFoundException, 
-  Param, 
-  ParseIntPipe, 
-  Patch, 
-  Post, 
-  Query 
+import {
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Get,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery, ApiConsumes } from '@nestjs/swagger';
 import { AiCoreService } from './ai-core.service';
-import { 
-  SaveHumanAnnotationDto, 
-  ApproveAnnotationDto, 
-  RejectAnnotationDto 
+import {
+  SaveHumanAnnotationDto,
+  ApproveAnnotationDto,
+  RejectAnnotationDto,
 } from './dto/human-annotation.dto';
 import { ToggleDeprecateDto } from './dto/toggle-deprecate.dto';
 import { QueryResultImagesDto } from './dto/query-result-images.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateAiAnnotationDto } from './dto/create-ai-annotation.dto';
 
 @ApiTags('AI Core')
 @Controller('ai-core')
@@ -30,11 +34,24 @@ export class AiCoreController {
   constructor(private readonly aiCoreService: AiCoreService) {}
 
   // ==================== AI DETECTION ====================
-  
+  // File
+  @Post('detect/image')
+  @HttpCode(HttpStatus.OK)
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Run AI detection from uploaded image file (demo)' })
+  async detectFromFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: Partial<RunAiDetectionDto>, // reuse model_name, confidence
+  ) {
+    return await this.aiCoreService.runDetectionForUploadedFile(file, dto);
+  }
+
   /**
    * Chạy AI Detection trên một ảnh
    * POST /ai-core/detect
    */
+  // URL
   @Post('detect')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Run AI detection on image' })
@@ -43,7 +60,7 @@ export class AiCoreController {
   }
 
   // ==================== GALLERY (LIST IMAGES) ====================
-  
+
   /**
    * Lấy danh sách ảnh với phân trang và filter
    * GET /ai-core/result-images?page=1&limit=10&status=TODO&search=lung
@@ -52,15 +69,24 @@ export class AiCoreController {
   @ApiOperation({ summary: 'Get list of result images (Gallery view)' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'status', required: false, enum: ['TODO', 'REVIEW', 'DONE'] })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['TODO', 'REVIEW', 'DONE'],
+  })
   @ApiQuery({ name: 'search', required: false, type: String })
   async getListResultImages(@Query() query: QueryResultImagesDto) {
     const { page = 1, limit = 10, status, search } = query;
-    return await this.aiCoreService.getListResultImages(page, limit, status, search);
+    return await this.aiCoreService.getListResultImages(
+      page,
+      limit,
+      status,
+      search,
+    );
   }
 
   // ==================== WORKSPACE (IMAGE DETAIL) ====================
-  
+
   /**
    * Lấy chi tiết ảnh với AI reference và annotation history
    * GET /ai-core/result-images/:image_id
@@ -84,7 +110,15 @@ export class AiCoreController {
   }
 
   // ==================== HUMAN ANNOTATION WORKFLOW ====================
-  
+  // Save AI detections to image_annotations for an image_id
+  @Post('annotations')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Save AI detections to image_annotations for an image_id',
+  })
+  async saveAnnotation(@Body() dto: CreateAiAnnotationDto) {
+    return await this.aiCoreService.saveAnnotationFromDetections(dto);
+  }
   /**
    * Lưu/Cập nhật Human Annotation (Draft/Submit)
    * POST /ai-core/result-images/:image_id/human-annotations
@@ -125,7 +159,7 @@ export class AiCoreController {
   }
 
   // ==================== ANNOTATION MANAGEMENT ====================
-  
+
   /**
    * Toggle deprecate status của một annotation
    * PATCH /ai-core/annotations/:annotation_id/deprecate
@@ -164,7 +198,7 @@ export class AiCoreController {
   }
 
   // ==================== STATISTICS ====================
-  
+
   /**
    * Thống kê tổng quan
    * GET /ai-core/statistics/overview

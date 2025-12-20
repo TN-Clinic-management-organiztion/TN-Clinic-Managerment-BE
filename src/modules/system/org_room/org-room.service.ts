@@ -199,7 +199,6 @@ export class OrgRoomsService {
         's.service_id',
         's.service_name',
         's.unit_price',
-        's.result_input_type',
         'sc.category_name',
       ])
       .from('room_services', 'rs')

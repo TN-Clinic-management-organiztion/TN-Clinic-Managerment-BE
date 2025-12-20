@@ -4,11 +4,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ServiceRequestItem } from './service_request_items.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 import { DataSource } from 'typeorm';
+import { ResultImage } from 'src/database/entities/service/result_images.entity';
 
 @Entity('service_results')
 export class ServiceResult {
@@ -46,4 +48,7 @@ export class ServiceResult {
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deleted_at?: Date;
+
+  @OneToMany(() => ResultImage, (img) => img.result)
+  images: ResultImage[];
 }

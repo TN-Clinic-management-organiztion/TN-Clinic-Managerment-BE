@@ -1,11 +1,13 @@
-import { IsBoolean, IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class ToggleDeprecateDto {
+  @ApiProperty({ description: 'Set deprecate status' })
   @IsBoolean()
-  @IsNotEmpty()
   is_deprecated: boolean;
 
-  @IsString()
+  @ApiProperty({ description: 'Reason for deprecation', required: false })
   @IsOptional()
-  reason?: string; // Lý do deprecate (optional)
+  @IsString()
+  reason?: string;
 }

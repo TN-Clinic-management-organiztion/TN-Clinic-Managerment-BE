@@ -25,6 +25,8 @@ import {
 } from './dto/human-annotation.dto';
 import { RunAiDetectionDto } from './dto/run-ai-detection.dto.ts';
 import { ExportAnnotationsDto } from 'src/modules/ai-core/dto/export-annotation.dto';
+import FormData from 'form-data';
+import { CreateAiAnnotationDto } from './dto/create-ai-annotation.dto';
 
 @Injectable()
 export class AiCoreService {
@@ -81,6 +83,67 @@ export class AiCoreService {
       throw new InternalServerErrorException('AI Service Failed');
     }
   }
+
+  async runDetectionForUploadedFile(
+    file: Express.Multer.File,
+    dto: { model_name?: string; confidence?: number },
+  ) {
+    if (!file) throw new BadRequestException('File is required');
+
+    try {
+      // Tạo FormData từ package form-data
+      const form = new FormData();
+      
+      // Append file buffer với đúng format
+      form.append('file', file.buffer, {
+        filename: file.originalname,
+        contentType: file.mimetype,
+      });
+
+      // Append các parameters khác
+      form.append('model_name', dto.model_name ?? 'yolov12n');
+      form.append('confidence_threshold', String(dto.confidence ?? 0.25));
+      form.append('iou_threshold', String(0.4));
+
+      // Gửi request với headers từ form-data
+      const response = await firstValueFrom(
+        this.httpService.post(`${this.aiServiceUrl}/detect/image`, form, {
+          headers: {
+            ...form.getHeaders(), // form-data tự động set Content-Type boundary
+          },
+          maxBodyLength: Infinity,
+          maxContentLength: Infinity,
+        }),
+      );
+
+      // Trả về detections để FE vẽ bbox
+      return response.data;
+    } catch (error) {
+      this.logger.error('AI Service Error (detect/image)', error?.message);
+      if (error.response) {
+        this.logger.error('Response data:', error.response.data);
+        this.logger.error('Response status:', error.response.status);
+      }
+      throw new InternalServerErrorException('AI Service Failed');
+    }
+  }
+
+  async saveAnnotationFromDetections(dto: CreateAiAnnotationDto) {
+  const imageRecord = await this.resultImageRepo.findOne({ where: { image_id: dto.image_id } });
+  if (!imageRecord) throw new NotFoundException(`Image not found`);
+
+  const ann = this.imageAnnotationRepo.create({
+    image_id: dto.image_id,
+    annotation_source: AnnotationSource.AI,
+    annotation_data: dto.detections ?? [],
+    ai_model_name: dto.model_name ?? 'yolov12n',
+    ai_model_version: 'v1.0',
+    annotation_status: AnnotationStatus.APPROVED,
+    labeled_at: new Date(),
+  });
+
+  return await this.imageAnnotationRepo.save(ann);
+}
 
   // ==================== 2. GALLERY (LIST) ====================
   async getListResultImages(
@@ -634,44 +697,39 @@ export class AiCoreService {
 
   // ==================== 12. LABELER STATISTICS ====================
   async getLabelerStatistics(staff_id: string) {
-    const [
-      totalAnnotated,
-      approved,
-      rejected,
-      inProgress,
-      submitted,
-    ] = await Promise.all([
-      this.imageAnnotationRepo.count({
-        where: {
-          labeled_by: staff_id,
-          annotation_source: AnnotationSource.HUMAN,
-        },
-      }),
-      this.imageAnnotationRepo.count({
-        where: {
-          labeled_by: staff_id,
-          annotation_status: AnnotationStatus.APPROVED,
-        },
-      }),
-      this.imageAnnotationRepo.count({
-        where: {
-          labeled_by: staff_id,
-          annotation_status: AnnotationStatus.REJECTED,
-        },
-      }),
-      this.imageAnnotationRepo.count({
-        where: {
-          labeled_by: staff_id,
-          annotation_status: AnnotationStatus.IN_PROGRESS,
-        },
-      }),
-      this.imageAnnotationRepo.count({
-        where: {
-          labeled_by: staff_id,
-          annotation_status: AnnotationStatus.SUBMITTED,
-        },
-      }),
-    ]);
+    const [totalAnnotated, approved, rejected, inProgress, submitted] =
+      await Promise.all([
+        this.imageAnnotationRepo.count({
+          where: {
+            labeled_by: staff_id,
+            annotation_source: AnnotationSource.HUMAN,
+          },
+        }),
+        this.imageAnnotationRepo.count({
+          where: {
+            labeled_by: staff_id,
+            annotation_status: AnnotationStatus.APPROVED,
+          },
+        }),
+        this.imageAnnotationRepo.count({
+          where: {
+            labeled_by: staff_id,
+            annotation_status: AnnotationStatus.REJECTED,
+          },
+        }),
+        this.imageAnnotationRepo.count({
+          where: {
+            labeled_by: staff_id,
+            annotation_status: AnnotationStatus.IN_PROGRESS,
+          },
+        }),
+        this.imageAnnotationRepo.count({
+          where: {
+            labeled_by: staff_id,
+            annotation_status: AnnotationStatus.SUBMITTED,
+          },
+        }),
+      ]);
 
     const recentAnnotations = await this.imageAnnotationRepo.find({
       where: {
@@ -709,7 +767,6 @@ export class AiCoreService {
       })),
     };
   }
-
 
   /**
    * EXPORT ANNOTATIONS - COCO FORMAT
@@ -750,7 +807,7 @@ export class AiCoreService {
   //     // Add image info (chỉ metadata, không có file)
   //     if (!imageMap.has(ann.image_id)) {
   //       imageMap.set(ann.image_id, imageId);
-        
+
   //       cocoData.images.push({
   //         id: imageId,
   //         file_name: ann.image?.file_name || `image_${imageId}.png`,
@@ -767,7 +824,7 @@ export class AiCoreService {
 
   //     // Process bounding boxes
   //     const boxes = Array.isArray(ann.annotation_data) ? ann.annotation_data : [];
-      
+
   //     for (const box of boxes) {
   //       // Add class if not exists
   //       const className = box.class?.name || 'unknown';
@@ -845,7 +902,7 @@ export class AiCoreService {
 
   //     for (const box of boxes) {
   //       const className = box.class?.name || 'unknown';
-        
+
   //       // Add class if not exists
   //       if (!classMap.has(className)) {
   //         classMap.set(className, classId);
