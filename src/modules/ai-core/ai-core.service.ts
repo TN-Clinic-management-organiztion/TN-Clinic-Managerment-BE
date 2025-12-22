@@ -93,7 +93,7 @@ export class AiCoreService {
     try {
       // Tạo FormData từ package form-data
       const form = new FormData();
-      
+
       // Append file buffer với đúng format
       form.append('file', file.buffer, {
         filename: file.originalname,
@@ -129,21 +129,23 @@ export class AiCoreService {
   }
 
   async saveAnnotationFromDetections(dto: CreateAiAnnotationDto) {
-  const imageRecord = await this.resultImageRepo.findOne({ where: { image_id: dto.image_id } });
-  if (!imageRecord) throw new NotFoundException(`Image not found`);
+    const imageRecord = await this.resultImageRepo.findOne({
+      where: { image_id: dto.image_id },
+    });
+    if (!imageRecord) throw new NotFoundException(`Image not found`);
 
-  const ann = this.imageAnnotationRepo.create({
-    image_id: dto.image_id,
-    annotation_source: AnnotationSource.AI,
-    annotation_data: dto.detections ?? [],
-    ai_model_name: dto.model_name ?? 'yolov12n',
-    ai_model_version: 'v1.0',
-    annotation_status: AnnotationStatus.APPROVED,
-    labeled_at: new Date(),
-  });
+    const ann = this.imageAnnotationRepo.create({
+      image_id: dto.image_id,
+      annotation_source: AnnotationSource.AI,
+      annotation_data: dto.detections ?? [],
+      ai_model_name: dto.model_name ?? 'yolov12n',
+      ai_model_version: 'v1.0',
+      annotation_status: AnnotationStatus.APPROVED,
+      labeled_at: new Date(),
+    });
 
-  return await this.imageAnnotationRepo.save(ann);
-}
+    return await this.imageAnnotationRepo.save(ann);
+  }
 
   // ==================== 2. GALLERY (LIST) ====================
   async getListResultImages(
@@ -188,26 +190,53 @@ export class AiCoreService {
       );
     }
 
+    console.log('statusFilter: ', filterStatus);
     // Status filter
     if (filterStatus) {
       if (filterStatus === 'DONE') {
-        query.andWhere('ann.annotation_status = :st', {
-          st: AnnotationStatus.APPROVED,
-        });
+        query.andWhere(
+          'ann.annotation_status = :st AND ann.annotation_source = :source',
+          {
+            st: AnnotationStatus.APPROVED,
+            source: AnnotationSource.HUMAN,
+          },
+        );
       } else if (filterStatus === 'REVIEW') {
         query.andWhere('ann.annotation_status = :st', {
           st: AnnotationStatus.SUBMITTED,
         });
       } else if (filterStatus === 'TODO') {
+        const hasValidHumanAnnotation = `
+        EXISTS (
+          SELECT 1 FROM image_annotations ha
+          WHERE ha.image_id = img.image_id
+          AND ha.annotation_source = '${AnnotationSource.HUMAN}'
+          AND ha.annotation_status IN ('${AnnotationStatus.APPROVED}', '${AnnotationStatus.SUBMITTED}')
+        )
+      `;
         query.andWhere(
           new Brackets((qb) => {
-            qb.where('ann.annotation_id IS NULL').orWhere(
-              'ann.annotation_source = :src AND ann.annotation_status IN (:...st)',
-              {
-                src: AnnotationSource.HUMAN,
-                st: [AnnotationStatus.IN_PROGRESS, AnnotationStatus.REJECTED],
-              },
-            );
+            // 1. Ảnh chưa có annotation nào
+            qb.where('ann.annotation_id IS NULL')
+              // 2. Ảnh có HUMAN annotation bị REJECTED/IN_PROGRESS/DEPRECATED
+              .orWhere(
+                'ann.annotation_source = :source AND ann.annotation_status IN (:...st)',
+                {
+                  source: AnnotationSource.HUMAN,
+                  st: [
+                    AnnotationStatus.IN_PROGRESS,
+                    AnnotationStatus.REJECTED,
+                    AnnotationStatus.DEPRECATED,
+                  ],
+                },
+              )
+              // 3. Ảnh chỉ có AI annotation (chưa có HUMAN annotation nào APPROVED/SUBMITTED)
+              .orWhere(
+                `ann.annotation_source = :aiSource AND NOT ${hasValidHumanAnnotation}`,
+                {
+                  aiSource: AnnotationSource.AI,
+                },
+              );
           }),
         );
       }
@@ -216,6 +245,7 @@ export class AiCoreService {
     const totalItems = await query.getCount();
     query.skip((page - 1) * limit).take(limit);
     const rawResults = await query.getMany();
+    console.log('rawResults: ', rawResults);
 
     const mappedData = rawResults.map((item: any) => {
       const anns = item.annotations || [];
@@ -247,6 +277,8 @@ export class AiCoreService {
         approved_by_name: humanAnn?.approver?.full_name,
       };
     });
+
+    console.log('mappedData: ', mappedData);
 
     return {
       items: mappedData,
@@ -433,7 +465,6 @@ export class AiCoreService {
 
     annotation.annotation_status = AnnotationStatus.REJECTED;
     annotation.rejection_reason = dto.reason;
-    annotation.reviewed_by = dto.rejected_by;
     annotation.reviewed_at = new Date();
     annotation.approved_by = null;
     annotation.approved_at = null;
@@ -475,7 +506,7 @@ export class AiCoreService {
   async getAnnotationHistory(image_id: string) {
     const annotations = await this.imageAnnotationRepo.find({
       where: { image_id },
-      relations: ['labeled_by_staff', 'approved_by_staff', 'reviewed_by_staff'],
+      relations: ['labeled_by_staff', 'approved_by_staff'],
       order: { created_at: 'DESC' },
     });
 
@@ -490,7 +521,6 @@ export class AiCoreService {
         ai_model: ann.ai_model_name,
         labeled_by: ann.labeled_by_staff?.full_name,
         labeled_at: ann.labeled_at,
-        reviewed_by: ann.reviewed_by_staff?.full_name,
         reviewed_at: ann.reviewed_at,
         approved_by: ann.approved_by_staff?.full_name,
         approved_at: ann.approved_at,
@@ -505,12 +535,7 @@ export class AiCoreService {
   async getAnnotationDetail(annotation_id: string) {
     const annotation = await this.imageAnnotationRepo.findOne({
       where: { annotation_id },
-      relations: [
-        'image',
-        'labeled_by_staff',
-        'reviewed_by_staff',
-        'approved_by_staff',
-      ],
+      relations: ['image', 'labeled_by_staff', 'approved_by_staff'],
     });
 
     if (!annotation) {
@@ -531,10 +556,6 @@ export class AiCoreService {
         name: annotation.labeled_by_staff?.full_name,
       },
       labeled_at: annotation.labeled_at,
-      reviewed_by: {
-        id: annotation.reviewed_by,
-        name: annotation.reviewed_by_staff?.full_name,
-      },
       reviewed_at: annotation.reviewed_at,
       approved_by: {
         id: annotation.approved_by,

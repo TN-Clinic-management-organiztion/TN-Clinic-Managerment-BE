@@ -39,7 +39,6 @@ export class QueueController {
     return this.queueService.findAll(query);
   }
 
-  // Có thể dùng api này để lấy những queue_tickets cho room_id mà KTV đó đang ở
   @Get('tickets/today/:roomId')
   getTodayTickets(
     @Param('roomId', ParseIntPipe) roomId: number,

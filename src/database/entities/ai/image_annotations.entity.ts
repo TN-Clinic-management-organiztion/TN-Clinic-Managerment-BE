@@ -33,9 +33,6 @@ export class ImageAnnotation {
   @Column({ name: 'labeled_by', type: 'uuid', nullable: true })
   labeled_by?: string | null;
 
-  @Column({ name: 'reviewed_by', type: 'uuid', nullable: true })
-  reviewed_by?: string | null;
-
   @Column({ name: 'approved_by', type: 'uuid', nullable: true })
   approved_by?: string | null;
 
@@ -47,10 +44,6 @@ export class ImageAnnotation {
   @ManyToOne(() => StaffProfile, { nullable: true })
   @JoinColumn({ name: 'labeled_by', referencedColumnName: 'staff_id' })
   labeled_by_staff?: StaffProfile;
-
-  @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'reviewed_by', referencedColumnName: 'staff_id' })
-  reviewed_by_staff?: StaffProfile;
 
   @ManyToOne(() => StaffProfile, { nullable: true })
   @JoinColumn({ name: 'approved_by', referencedColumnName: 'staff_id' })
