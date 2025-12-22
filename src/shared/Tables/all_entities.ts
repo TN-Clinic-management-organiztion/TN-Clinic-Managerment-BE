@@ -9,10 +9,6 @@ import { SysRole } from 'src/database/entities/auth/sys_roles.entity';
 import { SysUser } from 'src/database/entities/auth/sys_users.entity';
 import { MedicalEncounter } from 'src/database/entities/clinical/medical_encounters.entity';
 import { RefIcd10 } from 'src/database/entities/clinical/ref_icd10.entity';
-import { InvoiceItem } from 'src/database/entities/finance/invoice_items.entity';
-import { InvoicePayment } from 'src/database/entities/finance/invoice_payments.entity';
-import { Invoice } from 'src/database/entities/finance/invoices.entity';
-import { RefPaymentMethod } from 'src/database/entities/finance/ref_payment_methods.entity';
 import { QueueCounter } from 'src/database/entities/reception/queue_counters.entity';
 import { QueueTicket } from 'src/database/entities/reception/queue_tickets.entity';
 import { RefServiceCategory } from 'src/database/entities/service/ref_service_categories.entity';
@@ -46,12 +42,6 @@ const ALL_ENTITIES = [
   ServiceRequestItem,
   ServiceResult,
   ResultImage,
-
-  // Finance
-  RefPaymentMethod,
-  Invoice,
-  InvoiceItem,
-  InvoicePayment,
 
   // Annotation
   AnnotationProject,

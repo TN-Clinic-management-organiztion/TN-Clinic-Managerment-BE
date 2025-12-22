@@ -1,5 +1,4 @@
 import { IsOptional, IsString, IsEnum } from 'class-validator';
-import { Type } from 'class-transformer';
 import { PageQueryDto } from 'src/modules/_shared/pagination';
 
 export enum ImageFilterStatus {

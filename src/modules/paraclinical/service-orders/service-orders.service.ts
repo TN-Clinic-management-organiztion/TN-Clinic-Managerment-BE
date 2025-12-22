@@ -122,7 +122,6 @@ export class ServiceOrdersService {
       limit = 20,
       encounter_id,
       requesting_doctor_id,
-      payment_status,
       created_from,
       created_to,
     } = query;
@@ -141,12 +140,6 @@ export class ServiceOrdersService {
     if (requesting_doctor_id) {
       qb.andWhere('request.requesting_doctor_id = :requesting_doctor_id', {
         requesting_doctor_id,
-      });
-    }
-
-    if (payment_status) {
-      qb.andWhere('request.payment_status = :payment_status', {
-        payment_status,
       });
     }
 
