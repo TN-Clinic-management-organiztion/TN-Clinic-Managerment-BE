@@ -219,6 +219,8 @@ export class PatientsService {
         'patient.full_name',
         'patient.dob',
         'patient.gender',
+        'patient.medical_history',
+        'patient.allergy_history',
         'user.phone',
         'user.cccd',
         'user.created_at',
@@ -253,6 +255,8 @@ export class PatientsService {
       phone: patient.user?.phone,
       cccd: patient.user?.cccd,
       has_cccd: !!patient.user?.cccd,
+      medical_history: patient.medical_history,
+      allergy_history: patient.allergy_history,
       created_at: patient.user?.created_at,
     }));
   }

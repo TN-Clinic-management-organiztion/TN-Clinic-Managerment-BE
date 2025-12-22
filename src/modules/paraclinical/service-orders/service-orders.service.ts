@@ -81,13 +81,47 @@ export class ServiceOrdersService {
     });
   }
 
+  /**
+   * TẠO SERVICE REQUEST CHO DỊCH VỤ KHÁM BAN ĐẦU
+   * Gọi ngay sau khi tạo Encounter
+   */
+  async createInitialConsultationRequest(
+    encounterId: string,
+    serviceId: number, // ID của dịch vụ khám (từ ref_services)
+    requestedBy: string, // staff_id của người tiếp đón
+  ) {
+    return await this.dataSource.transaction(async (manager) => {
+      // 1. Tạo service_request
+      const serviceRequest = await manager.query(
+        `
+        INSERT INTO service_requests (encounter_id, created_at)
+        VALUES ($1, NOW())
+        RETURNING request_id
+        `,
+        [encounterId],
+      );
+
+      const requestId = serviceRequest[0].request_id;
+
+      // 2. Tạo service_request_item cho dịch vụ khám
+      await manager.query(
+        `
+        INSERT INTO service_request_items (request_id, service_id)
+        VALUES ($1, $2)
+        `,
+        [requestId, serviceId],
+      );
+
+      return { request_id: requestId };
+    });
+  }
+
   async findAllRequests(query: QueryServiceRequestDto) {
     const {
       page = 1,
       limit = 20,
       encounter_id,
       requesting_doctor_id,
-      payment_status,
       created_from,
       created_to,
     } = query;
@@ -106,12 +140,6 @@ export class ServiceOrdersService {
     if (requesting_doctor_id) {
       qb.andWhere('request.requesting_doctor_id = :requesting_doctor_id', {
         requesting_doctor_id,
-      });
-    }
-
-    if (payment_status) {
-      qb.andWhere('request.payment_status = :payment_status', {
-        payment_status,
       });
     }
 
@@ -181,9 +209,11 @@ export class ServiceOrdersService {
   }
 
   // ==================== REQUEST ITEMS ====================
+  // Endpoint update item hiện không còn cập nhật trạng thái vì đã bỏ cột status.
+  // Tạm thời chỉ trả về item (nếu tồn tại) để tránh breaking API.
   async updateRequestItem(
     itemId: string,
-    dto: UpdateRequestItemDto,
+    _dto: UpdateRequestItemDto,
   ): Promise<ServiceRequestItem> {
     const item = await this.itemRepo.findOne({
       where: { item_id: itemId },
@@ -194,8 +224,7 @@ export class ServiceOrdersService {
       throw new NotFoundException(`Request item with ID ${itemId} not found`);
     }
 
-    item.status = dto.status;
-    return await this.itemRepo.save(item);
+    return item;
   }
 
   async removeRequestItem(itemId: string): Promise<void> {
@@ -221,13 +250,14 @@ export class ServiceOrdersService {
   }
 
   async getPendingItems(roomId?: number) {
+    // Do đã bỏ trạng thái trên service_request_items, hàm này được chuyển
+    // thành danh sách tất cả items còn hiệu lực (request chưa deleted).
     const qb = this.itemRepo
       .createQueryBuilder('item')
       .leftJoinAndSelect('item.service', 'service')
       .leftJoinAndSelect('item.request', 'request')
       .leftJoinAndSelect('request.encounter', 'encounter')
       .leftJoinAndSelect('encounter.patient', 'patient')
-      .where('item.status = :status', { status: 'PENDING' })
       .andWhere('request.deleted_at IS NULL');
 
     if (roomId) {
@@ -241,4 +271,5 @@ export class ServiceOrdersService {
 
     return await qb.orderBy('request.created_at', 'ASC').getMany();
   }
+  
 }

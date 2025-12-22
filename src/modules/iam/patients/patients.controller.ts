@@ -24,18 +24,17 @@ export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
   @Post()
-  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST') // Admin, thu ngân, lễ tân
+  @Roles('ADMIN', 'RECEPTIONIST')
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() createPatientDto: CreatePatientDto,
-    // @CurrentUser('user_id') staffId: string,
+    @CurrentUser('user_id') staffId: string,
   ) {
-    // return this.patientsService.create(createPatientDto, staffId);
-    return this.patientsService.create(createPatientDto);
+    return this.patientsService.create(createPatientDto, staffId);
   }
 
   @Put(':id/cccd')
-  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST')
+  @Roles('ADMIN', 'RECEPTIONIST')
   @HttpCode(HttpStatus.OK)
   async updateCCCD(
     @Param('id') patientId: string,
@@ -45,7 +44,7 @@ export class PatientsController {
   }
 
   @Put(':id')
-  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST')
+  @Roles('ADMIN', 'RECEPTIONIST')
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id') patientId: string,
@@ -55,21 +54,21 @@ export class PatientsController {
   }
 
   @Get('search')
-  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST')
+  @Roles('ADMIN', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST')
   @HttpCode(HttpStatus.OK)
   async search(@Query() searchDto: PatientSearchDto) {
     return this.patientsService.search(searchDto);
   }
 
   @Get('phone/:phone')
-  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST')
+  @Roles('ADMIN', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST')
   @HttpCode(HttpStatus.OK)
   async getByPhone(@Param('phone') phone: string) {
     return this.patientsService.getByPhone(phone);
   }
 
   @Get(':id')
-  // @Roles('ADMIN', 'CASHIER', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST')
+  @Roles('ADMIN', 'RECEPTIONIST', 'DOCTOR', 'PHARMACIST')
   @HttpCode(HttpStatus.OK)
   async findOne(@Param('id') patientId: string) {
     return this.patientsService.findOne(patientId);

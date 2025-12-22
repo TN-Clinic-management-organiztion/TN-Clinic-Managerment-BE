@@ -4,11 +4,7 @@ import { QueryServiceDto } from './dto/services/query-service.dto';
 import { CreateCategoryDto } from './dto/categories/create-category.dto';
 import { UpdateCategoryDto } from './dto/categories/update-category.dto';
 import { QueryCategoryDto } from './dto/categories/query-category.dto';
-import { CreateIndicatorDto } from './dto/indicators/create-indicator.dto';
-import { UpdateIndicatorDto } from './dto/indicators/update-indicator.dto';
-import { QueryIndicatorDto } from './dto/indicators/query-indicator.dto';
-import { LinkServiceIndicatorDto } from './dto/service-indicators/link-indicator.dto';
-import { LinkRoomServiceDto } from './dto/service-indicators/link-room-service.dto';
+import { LinkRoomServiceDto } from './dto/services/link-room-service.dto';
 import {
   Injectable,
   NotFoundException,
@@ -18,7 +14,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { RefService } from 'src/database/entities/service/ref_services.entity';
 import { RefServiceCategory } from 'src/database/entities/service/ref_service_categories.entity';
-import { RefLabIndicator } from 'src/database/entities/service/ref_lab_indicators.entity';
 
 @Injectable()
 export class ServicesService {
@@ -27,8 +22,6 @@ export class ServicesService {
     private serviceRepo: Repository<RefService>,
     @InjectRepository(RefServiceCategory)
     private categoryRepo: Repository<RefServiceCategory>,
-    @InjectRepository(RefLabIndicator)
-    private indicatorRepo: Repository<RefLabIndicator>,
     private dataSource: DataSource,
   ) {}
 
@@ -36,7 +29,7 @@ export class ServicesService {
   async createService(dto: CreateServiceDto): Promise<RefService> {
     const service = this.serviceRepo.create({
       ...dto,
-      base_price: dto.base_price ? String(dto.base_price) : undefined,
+      unit_price: dto.unit_price ? String(dto.unit_price) : undefined,
     });
     return await this.serviceRepo.save(service);
   }
@@ -46,7 +39,6 @@ export class ServicesService {
       page = 1,
       limit = 20,
       category_id,
-      result_input_type,
       search,
     } = query;
 
@@ -57,12 +49,6 @@ export class ServicesService {
 
     if (category_id) {
       qb.andWhere('service.category_id = :category_id', { category_id });
-    }
-
-    if (result_input_type) {
-      qb.andWhere('service.result_input_type = :result_input_type', {
-        result_input_type,
-      });
     }
 
     if (search) {
@@ -103,7 +89,7 @@ export class ServicesService {
     const service = await this.findOneService(id);
     Object.assign(service, {
       ...dto,
-      base_price: dto.base_price ? String(dto.base_price) : service.base_price,
+      unit_price: dto.unit_price ? String(dto.unit_price) : service.unit_price,
     });
     return await this.serviceRepo.save(service);
   }
@@ -121,12 +107,12 @@ export class ServicesService {
 
   async findAllCategories(query: QueryCategoryDto) {
     const { page = 1, limit = 20, parent_id, is_system_root, search } = query;
-
+    console.log('search all categories: ', search);
     const skip = (page - 1) * limit;
     const qb = this.categoryRepo
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.parent', 'parent');
-
+    console.log('parent_id: ', parent_id);
     if (parent_id !== undefined) {
       if (parent_id === null) {
         qb.andWhere('category.parent_id IS NULL');
@@ -240,139 +226,6 @@ export class ServicesService {
     await this.categoryRepo.remove(category);
   }
 
-  // ==================== INDICATORS ====================
-  async createIndicator(dto: CreateIndicatorDto): Promise<RefLabIndicator> {
-    const indicator = this.indicatorRepo.create({
-      ...dto,
-      ref_min_male: dto.ref_min_male ? String(dto.ref_min_male) : undefined,
-      ref_max_male: dto.ref_max_male ? String(dto.ref_max_male) : undefined,
-      ref_min_female: dto.ref_min_female
-        ? String(dto.ref_min_female)
-        : undefined,
-      ref_max_female: dto.ref_max_female
-        ? String(dto.ref_max_female)
-        : undefined,
-    });
-    return await this.indicatorRepo.save(indicator);
-  }
-
-  async findAllIndicators(query: QueryIndicatorDto) {
-    const { page = 1, limit = 20, indicator_code, search } = query;
-
-    const skip = (page - 1) * limit;
-    const qb = this.indicatorRepo.createQueryBuilder('indicator');
-
-    if (indicator_code) {
-      qb.andWhere('indicator.indicator_code = :indicator_code', {
-        indicator_code,
-      });
-    }
-
-    if (search) {
-      qb.andWhere(
-        '(indicator.indicator_name ILIKE :search OR indicator.indicator_code ILIKE :search)',
-        { search: `%${search}%` },
-      );
-    }
-
-    qb.orderBy('indicator.indicator_id', 'ASC').skip(skip).take(limit);
-
-    const [data, total] = await qb.getManyAndCount();
-
-    return {
-      data,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
-  }
-
-  async findOneIndicator(id: number): Promise<RefLabIndicator> {
-    const indicator = await this.indicatorRepo.findOne({
-      where: { indicator_id: id },
-    });
-
-    if (!indicator) {
-      throw new NotFoundException(`Indicator with ID ${id} not found`);
-    }
-
-    return indicator;
-  }
-
-  async updateIndicator(
-    id: number,
-    dto: UpdateIndicatorDto,
-  ): Promise<RefLabIndicator> {
-    const indicator = await this.findOneIndicator(id);
-    Object.assign(indicator, {
-      ...dto,
-      ref_min_male: dto.ref_min_male
-        ? String(dto.ref_min_male)
-        : indicator.ref_min_male,
-      ref_max_male: dto.ref_max_male
-        ? String(dto.ref_max_male)
-        : indicator.ref_max_male,
-      ref_min_female: dto.ref_min_female
-        ? String(dto.ref_min_female)
-        : indicator.ref_min_female,
-      ref_max_female: dto.ref_max_female
-        ? String(dto.ref_max_female)
-        : indicator.ref_max_female,
-    });
-    return await this.indicatorRepo.save(indicator);
-  }
-
-  async removeIndicator(id: number): Promise<void> {
-    const indicator = await this.findOneIndicator(id);
-    await this.indicatorRepo.remove(indicator);
-  }
-
-  // ==================== SERVICE-INDICATOR LINKS ====================
-  async linkServiceIndicator(dto: LinkServiceIndicatorDto): Promise<void> {
-    const { service_id, indicator_id, sort_order } = dto;
-
-    // Verify service exists
-    await this.findOneService(service_id);
-
-    // Verify indicator exists
-    await this.findOneIndicator(indicator_id);
-
-    // Insert link
-    await this.dataSource.query(
-      `INSERT INTO rel_service_indicators (service_id, indicator_id, sort_order)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (service_id, indicator_id) DO UPDATE SET sort_order = $3`,
-      [service_id, indicator_id, sort_order || null],
-    );
-  }
-
-  async unlinkServiceIndicator(
-    serviceId: number,
-    indicatorId: number,
-  ): Promise<void> {
-    await this.dataSource.query(
-      `DELETE FROM rel_service_indicators 
-       WHERE service_id = $1 AND indicator_id = $2`,
-      [serviceId, indicatorId],
-    );
-  }
-
-  async getServiceIndicators(serviceId: number) {
-    const indicators = await this.dataSource.query(
-      `SELECT i.*, rsi.sort_order
-       FROM ref_lab_indicators i
-       JOIN rel_service_indicators rsi ON i.indicator_id = rsi.indicator_id
-       WHERE rsi.service_id = $1
-       ORDER BY rsi.sort_order NULLS LAST, i.indicator_id`,
-      [serviceId],
-    );
-
-    return indicators;
-  }
-
   // ==================== ROOM-SERVICE LINKS ====================
   async linkRoomService(dto: LinkRoomServiceDto): Promise<void> {
     const { room_id, service_id } = dto;
@@ -432,5 +285,102 @@ export class ServicesService {
     );
 
     return rooms;
+  }
+
+  // ======================= Lọc những service được chỉ định
+  async getAssignedServicesByEncounter(encounterId: string) {
+    const rows = await this.dataSource.query(
+      `
+    WITH tickets AS (
+      SELECT
+        qt.room_id,
+        qt.display_number,
+        qt.status,
+        qt.service_ids,
+        qt.created_at
+      FROM queue_tickets qt
+      WHERE qt.encounter_id = $1
+        AND qt.ticket_type = 'SERVICE'
+        AND qt.service_ids IS NOT NULL
+    ),
+    expanded AS (
+      SELECT
+        t.room_id,
+        UNNEST(t.service_ids) AS service_id
+      FROM tickets t
+    ),
+    latest_ticket AS (
+      SELECT DISTINCT ON (t.room_id)
+        t.room_id,
+        t.display_number,
+        t.status
+      FROM tickets t
+      ORDER BY t.room_id, t.created_at DESC
+    )
+    SELECT
+      e.room_id,
+      r.room_name,
+      lt.display_number,
+      lt.status,
+      s.service_id,
+      s.service_name,
+      s.unit_price,
+      s.category_id,
+      c.category_name
+    FROM expanded e
+    JOIN ref_services s ON s.service_id = e.service_id
+    LEFT JOIN ref_service_categories c ON c.category_id = s.category_id
+    LEFT JOIN org_rooms r ON r.room_id = e.room_id
+    LEFT JOIN latest_ticket lt ON lt.room_id = e.room_id
+    ORDER BY e.room_id, s.service_id;
+    `,
+      [encounterId],
+    );
+
+    // Group theo room
+    const map = new Map<
+      number,
+      {
+        room_id: number;
+        room_name?: string;
+        status?: string;
+        display_number?: number;
+        services: any[];
+      }
+    >();
+
+    for (const row of rows) {
+      const room_id = Number(row.room_id);
+
+      if (!map.has(room_id)) {
+        map.set(room_id, {
+          room_id,
+          room_name: row.room_name ?? undefined,
+          status: row.status ?? undefined,
+          display_number:
+            row.display_number != null ? Number(row.display_number) : undefined,
+          services: [],
+        });
+      }
+
+      map.get(room_id)!.services.push({
+        service_id: Number(row.service_id),
+        service_name: row.service_name,
+        unit_price: row.unit_price, // numeric -> string
+        category_id: row.category_id ?? null,
+        category_name: row.category_name ?? null,
+      });
+    }
+
+    const data = Array.from(map.values());
+    const totalServices = rows.length;
+
+    return {
+      data,
+      meta: {
+        totalRooms: data.length,
+        totalServices,
+      },
+    };
   }
 }

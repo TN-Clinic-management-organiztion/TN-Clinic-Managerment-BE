@@ -10,6 +10,7 @@ export interface JwtPayload {
   user_type: 'STAFF' | 'PATIENT' | 'ADMIN';
   staff_id?: string;    // chỉ có nếu là staff
   patient_id?: string;  // chỉ có nếu là patient
+  assigned_room_id?: number; // Phòng dành cho staff
 }
 
 export interface Tokens {

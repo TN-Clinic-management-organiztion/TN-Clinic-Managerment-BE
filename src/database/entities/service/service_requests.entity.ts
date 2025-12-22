@@ -10,13 +10,6 @@ import {
 import { MedicalEncounter } from '../clinical/medical_encounters.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
 
-export enum PaymentStatus {
-  UNPAID = 'UNPAID',
-  PARTIALLY_PAID = 'PARTIALLY_PAID',
-  PAID = 'PAID',
-  CANCELLED = 'CANCELLED',
-}
-
 @Entity('service_requests')
 export class ServiceRequest {
   @PrimaryGeneratedColumn('uuid', { name: 'request_id' })
@@ -44,14 +37,6 @@ export class ServiceRequest {
   // --- COLUMNS ---
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   created_at: Date;
-
-  @Column({
-    name: 'payment_status',
-    type: 'enum',
-    enum: PaymentStatus,
-    default: PaymentStatus.UNPAID,
-  })
-  payment_status: PaymentStatus;
 
   @Column({ name: 'notes', type: 'text', nullable: true })
   notes?: string;

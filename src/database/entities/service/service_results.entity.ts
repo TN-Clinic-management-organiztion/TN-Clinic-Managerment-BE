@@ -4,12 +4,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ServiceRequestItem } from './service_request_items.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
-import { ServiceReportTemplate } from './service_report_templates.entity';
 import { DataSource } from 'typeorm';
+import { ResultImage } from 'src/database/entities/service/result_images.entity';
 
 @Entity('service_results')
 export class ServiceResult {
@@ -23,12 +24,6 @@ export class ServiceResult {
   @Column({ name: 'technician_id', type: 'uuid', nullable: true })
   technician_id?: string | null;
 
-  @Column({ name: 'approving_doctor_id', type: 'uuid', nullable: true })
-  approving_doctor_id?: string | null;
-
-  @Column({ name: 'used_template_id', type: 'int', nullable: true })
-  used_template_id?: number | null;
-
   // --- RELATIONS ---
   @ManyToOne(() => ServiceRequestItem, { nullable: true })
   @JoinColumn({ name: 'request_item_id', referencedColumnName: 'item_id' })
@@ -37,14 +32,6 @@ export class ServiceResult {
   @ManyToOne(() => StaffProfile, { nullable: true })
   @JoinColumn({ name: 'technician_id', referencedColumnName: 'staff_id' })
   technician?: StaffProfile;
-
-  @ManyToOne(() => StaffProfile, { nullable: true })
-  @JoinColumn({ name: 'approving_doctor_id', referencedColumnName: 'staff_id' })
-  approving_doctor?: StaffProfile;
-
-  @ManyToOne(() => ServiceReportTemplate, { nullable: true })
-  @JoinColumn({ name: 'used_template_id', referencedColumnName: 'template_id' })
-  used_template?: ServiceReportTemplate;
 
   // --- COLUMNS ---
   @Column({ name: 'main_conclusion', type: 'text', nullable: true })
@@ -61,4 +48,7 @@ export class ServiceResult {
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deleted_at?: Date;
+
+  @OneToMany(() => ResultImage, (img) => img.result)
+  images: ResultImage[];
 }

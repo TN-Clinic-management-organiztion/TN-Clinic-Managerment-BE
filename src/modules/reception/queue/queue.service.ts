@@ -84,6 +84,21 @@ export class QueueService {
       .execute();
   }
 
+  async getLastNumberOfRoomToday(id: number) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let counter = await this.counterRepo.findOne({
+      where: { room_id: id, reset_date: today },
+    });
+
+    if (!counter) {
+      throw new NotFoundException(`Không tồn tại room có id: ${id}`);
+    }
+    return {
+      last_number: counter.last_number,
+    };
+  }
+
   // ==================== TICKET LOGIC ====================
 
   async createTicket(dto: CreateTicketDto): Promise<QueueTicket> {
@@ -165,9 +180,6 @@ export class QueueService {
         status: QueueStatus.WAITING,
         source: dto.source ?? QueueSource.WALKIN,
 
-        // IMPORTANT: DTO không có appointment_id -> luôn null
-        appointment_id: null,
-
         // REGISTRATION luôn null encounter_id
         encounter_id:
           dto.ticket_type === QueueTicketType.REGISTRATION
@@ -209,12 +221,13 @@ export class QueueService {
       .leftJoinAndSelect('ticket.encounter', 'encounter')
       .leftJoinAndSelect('encounter.patient', 'patient');
 
-    // KHÔNG cần .where('1=1') — cứ andWhere bình thường vẫn chạy
     if (room_id) qb.andWhere('ticket.room_id = :room_id', { room_id });
-    if (ticket_type) qb.andWhere('ticket.ticket_type = :ticket_type', { ticket_type });
+    if (ticket_type)
+      qb.andWhere('ticket.ticket_type = :ticket_type', { ticket_type });
     if (status) qb.andWhere('ticket.status = :status', { status });
     if (source) qb.andWhere('ticket.source = :source', { source });
-    if (encounter_id) qb.andWhere('ticket.encounter_id = :encounter_id', { encounter_id });
+    if (encounter_id)
+      qb.andWhere('ticket.encounter_id = :encounter_id', { encounter_id });
 
     qb.orderBy('ticket.created_at', 'DESC').skip(skip).take(limit);
 
@@ -229,7 +242,7 @@ export class QueueService {
   async findOne(id: string): Promise<QueueTicket> {
     const ticket = await this.ticketRepo.findOne({
       where: { ticket_id: id },
-      relations: ['room', 'encounter', 'encounter.patient', 'appointment'],
+      relations: ['room', 'encounter', 'encounter.patient'],
     });
 
     if (!ticket) throw new NotFoundException(`Ticket with ID ${id} not found`);
@@ -254,7 +267,8 @@ export class QueueService {
       .andWhere('ticket.created_at < :tomorrow', { tomorrow });
 
     if (source) qb.andWhere('ticket.source = :source', { source });
-    if (ticketType) qb.andWhere('ticket.ticket_type = :ticketType', { ticketType });
+    if (ticketType)
+      qb.andWhere('ticket.ticket_type = :ticketType', { ticketType });
 
     qb.orderBy('ticket.display_number', 'ASC');
     return qb.getMany();
@@ -272,16 +286,26 @@ export class QueueService {
       .where('ticket.room_id = :roomId', { roomId })
       .andWhere('ticket.status = :status', { status: QueueStatus.WAITING });
 
-    if (ticketType) qb.andWhere('ticket.ticket_type = :ticketType', { ticketType });
+    if (ticketType)
+      qb.andWhere('ticket.ticket_type = :ticketType', { ticketType });
     if (source) qb.andWhere('ticket.source = :source', { source });
 
     qb.orderBy('ticket.display_number', 'ASC');
     return qb.getMany();
   }
 
-  async callNext(roomId: number, ticketType: QueueTicketType, source?: QueueSource) {
-    const waitingTickets = await this.getWaitingTickets(roomId, ticketType, source);
-    if (!waitingTickets.length) throw new NotFoundException('No waiting tickets');
+  async callNext(
+    roomId: number,
+    ticketType: QueueTicketType,
+    source?: QueueSource,
+  ) {
+    const waitingTickets = await this.getWaitingTickets(
+      roomId,
+      ticketType,
+      source,
+    );
+    if (!waitingTickets.length)
+      throw new NotFoundException('No waiting tickets');
 
     const nextTicket = waitingTickets[0];
     nextTicket.status = QueueStatus.CALLED;
@@ -291,8 +315,11 @@ export class QueueService {
   }
 
   async callSpecific(ticketId: string): Promise<QueueTicket> {
-    const ticket = await this.ticketRepo.findOne({ where: { ticket_id: ticketId } });
-    if (!ticket) throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
+    const ticket = await this.ticketRepo.findOne({
+      where: { ticket_id: ticketId },
+    });
+    if (!ticket)
+      throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
     if (ticket.status !== QueueStatus.WAITING) {
       throw new BadRequestException('Only WAITING tickets can be called');
     }
@@ -303,8 +330,11 @@ export class QueueService {
   }
 
   async startService(ticketId: string): Promise<QueueTicket> {
-    const ticket = await this.ticketRepo.findOne({ where: { ticket_id: ticketId } });
-    if (!ticket) throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
+    const ticket = await this.ticketRepo.findOne({
+      where: { ticket_id: ticketId },
+    });
+    if (!ticket)
+      throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
     if (ticket.status !== QueueStatus.CALLED) {
       throw new BadRequestException('Only CALLED tickets can start service');
     }
@@ -315,10 +345,15 @@ export class QueueService {
   }
 
   async completeTicket(ticketId: string): Promise<QueueTicket> {
-    const ticket = await this.ticketRepo.findOne({ where: { ticket_id: ticketId } });
-    if (!ticket) throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
+    const ticket = await this.ticketRepo.findOne({
+      where: { ticket_id: ticketId },
+    });
+    if (!ticket)
+      throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
     if (ticket.status !== QueueStatus.IN_PROGRESS) {
-      throw new BadRequestException('Only IN_PROGRESS tickets can be completed');
+      throw new BadRequestException(
+        'Only IN_PROGRESS tickets can be completed',
+      );
     }
 
     ticket.status = QueueStatus.COMPLETED;
@@ -327,11 +362,16 @@ export class QueueService {
   }
 
   async skipTicket(ticketId: string): Promise<QueueTicket> {
-    const ticket = await this.ticketRepo.findOne({ where: { ticket_id: ticketId } });
-    if (!ticket) throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
+    const ticket = await this.ticketRepo.findOne({
+      where: { ticket_id: ticketId },
+    });
+    if (!ticket)
+      throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
 
-    if (![QueueStatus.CALLED, QueueStatus.WAITING].includes(ticket.status)) {
-      throw new BadRequestException('Only CALLED or WAITING tickets can be skipped');
+    if (![QueueStatus.CALLED, QueueStatus.WAITING, QueueStatus.IN_PROGRESS].includes(ticket.status)) {
+      throw new BadRequestException(
+        'Only CALLED or WAITING tickets can be skipped',
+      );
     }
 
     ticket.status = QueueStatus.SKIPPED;
@@ -339,9 +379,15 @@ export class QueueService {
     return this.ticketRepo.save(ticket);
   }
 
-  async assignServices(ticketId: string, dto: AssignServicesDto): Promise<QueueTicket> {
-    const ticket = await this.ticketRepo.findOne({ where: { ticket_id: ticketId } });
-    if (!ticket) throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
+  async assignServices(
+    ticketId: string,
+    dto: AssignServicesDto,
+  ): Promise<QueueTicket> {
+    const ticket = await this.ticketRepo.findOne({
+      where: { ticket_id: ticketId },
+    });
+    if (!ticket)
+      throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
 
     const services = await this.dataSource.manager
       .createQueryBuilder()

@@ -16,16 +16,31 @@ import { QueryServiceDto } from './dto/services/query-service.dto';
 import { CreateCategoryDto } from './dto/categories/create-category.dto';
 import { UpdateCategoryDto } from './dto/categories/update-category.dto';
 import { QueryCategoryDto } from './dto/categories/query-category.dto';
-import { CreateIndicatorDto } from './dto/indicators/create-indicator.dto';
-import { UpdateIndicatorDto } from './dto/indicators/update-indicator.dto';
-import { QueryIndicatorDto } from './dto/indicators/query-indicator.dto';
-import { LinkServiceIndicatorDto } from './dto/service-indicators/link-indicator.dto';
-import { LinkRoomServiceDto } from './dto/service-indicators/link-room-service.dto';
+import { LinkRoomServiceDto } from './dto/services/link-room-service.dto';
 
 @ApiTags('Services')
 @Controller('services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
+
+  // ==================== CATEGORIES ====================
+  @Post('categories')
+  @ApiOperation({ summary: 'Create service category' })
+  createCategory(@Body() dto: CreateCategoryDto) {
+    return this.servicesService.createCategory(dto);
+  }
+
+  @Get('categories')
+  @ApiOperation({ summary: 'Get all categories with pagination' })
+  findAllCategories(@Query() query: QueryCategoryDto) {
+    return this.servicesService.findAllCategories(query);
+  }
+
+  @Get('categories/tree')
+  @ApiOperation({ summary: 'Get category tree structure' })
+  getCategoryTree() {
+    return this.servicesService.getCategoryTree();
+  }
 
   // ==================== SERVICES ====================
   @Post()
@@ -59,24 +74,6 @@ export class ServicesController {
   }
 
   // ==================== CATEGORIES ====================
-  @Post('categories')
-  @ApiOperation({ summary: 'Create service category' })
-  createCategory(@Body() dto: CreateCategoryDto) {
-    return this.servicesService.createCategory(dto);
-  }
-
-  @Get('categories')
-  @ApiOperation({ summary: 'Get all categories with pagination' })
-  findAllCategories(@Query() query: QueryCategoryDto) {
-    return this.servicesService.findAllCategories(query);
-  }
-
-  @Get('categories/tree')
-  @ApiOperation({ summary: 'Get category tree structure' })
-  getCategoryTree() {
-    return this.servicesService.getCategoryTree();
-  }
-
   @Get('categories/:id')
   @ApiOperation({ summary: 'Get category by ID' })
   findOneCategory(@Param('id') id: string) {
@@ -95,67 +92,14 @@ export class ServicesController {
     return this.servicesService.removeCategory(+id);
   }
 
-  // ==================== INDICATORS ====================
-  @Post('indicators')
-  @ApiOperation({ summary: 'Create lab indicator' })
-  createIndicator(@Body() dto: CreateIndicatorDto) {
-    return this.servicesService.createIndicator(dto);
-  }
-
-  @Get('indicators')
-  @ApiOperation({ summary: 'Get all indicators with pagination' })
-  findAllIndicators(@Query() query: QueryIndicatorDto) {
-    return this.servicesService.findAllIndicators(query);
-  }
-
-  @Get('indicators/:id')
-  @ApiOperation({ summary: 'Get indicator by ID' })
-  findOneIndicator(@Param('id') id: string) {
-    return this.servicesService.findOneIndicator(+id);
-  }
-
-  @Patch('indicators/:id')
-  @ApiOperation({ summary: 'Update indicator' })
-  updateIndicator(@Param('id') id: string, @Body() dto: UpdateIndicatorDto) {
-    return this.servicesService.updateIndicator(+id, dto);
-  }
-
-  @Delete('indicators/:id')
-  @ApiOperation({ summary: 'Delete indicator' })
-  removeIndicator(@Param('id') id: string) {
-    return this.servicesService.removeIndicator(+id);
-  }
-
-  // ==================== SERVICE-INDICATOR LINKS ====================
-  @Post('link-indicator')
-  @ApiOperation({ summary: 'Link indicator to service' })
-  linkServiceIndicator(@Body() dto: LinkServiceIndicatorDto) {
-    return this.servicesService.linkServiceIndicator(dto);
-  }
-
-  @Delete(':serviceId/indicators/:indicatorId')
-  @ApiOperation({ summary: 'Unlink indicator from service' })
-  unlinkServiceIndicator(
-    @Param('serviceId') serviceId: string,
-    @Param('indicatorId') indicatorId: string,
-  ) {
-    return this.servicesService.unlinkServiceIndicator(+serviceId, +indicatorId);
-  }
-
-  @Get(':id/indicators')
-  @ApiOperation({ summary: 'Get all indicators for a service' })
-  getServiceIndicators(@Param('id') id: string) {
-    return this.servicesService.getServiceIndicators(+id);
-  }
-
   // ==================== ROOM-SERVICE LINKS ====================
-  @Post('link-room')
+  @Post('room-service/link-room')
   @ApiOperation({ summary: 'Link service to room' })
   linkRoomService(@Body() dto: LinkRoomServiceDto) {
     return this.servicesService.linkRoomService(dto);
   }
 
-  @Delete('rooms/:roomId/services/:serviceId')
+  @Delete('room-service/rooms/:roomId/services/:serviceId')
   @ApiOperation({ summary: 'Unlink service from room' })
   unlinkRoomService(
     @Param('roomId') roomId: string,
@@ -164,15 +108,37 @@ export class ServicesController {
     return this.servicesService.unlinkRoomService(+roomId, +serviceId);
   }
 
-  @Get('rooms/:roomId')
+  @Get('room-service/rooms/:roomId')
   @ApiOperation({ summary: 'Get all services for a room' })
   getRoomServices(@Param('roomId') roomId: string) {
     return this.servicesService.getRoomServices(+roomId);
   }
 
-  @Get(':id/rooms')
+  @Get('room-service/:id/rooms')
   @ApiOperation({ summary: 'Get all rooms providing a service' })
   getServiceRooms(@Param('id') id: string) {
     return this.servicesService.getServiceRooms(+id);
   }
+
+  @Get('encounters/:encounterId/assigned-services')
+  @ApiOperation({
+    summary:
+      'Get assigned services for an encounter (from SERVICE queue tickets)',
+  })
+  getAssignedServicesByEncounter(@Param('encounterId') encounterId: string) {
+    return this.servicesService.getAssignedServicesByEncounter(encounterId);
+  }
+
+  //   {
+  //   data: [
+  //     {
+  //       room_id,
+  //       room_name,
+  //       status,         
+  //       display_number, 
+  //       services: [{ service_id, service_name, category_name, unit_price, ... }]
+  //     }
+  //   ],
+  //   meta: { totalRooms, totalServices }
+  // }
 }

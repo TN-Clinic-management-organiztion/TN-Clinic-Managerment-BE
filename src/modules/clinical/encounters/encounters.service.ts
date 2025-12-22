@@ -98,7 +98,7 @@ export class EncountersService {
       .leftJoinAndSelect('encounter.patient', 'patient')
       .leftJoinAndSelect('encounter.doctor', 'doctor')
       .leftJoinAndSelect('encounter.assigned_room', 'room')
-      .leftJoinAndSelect('encounter.final_icd', 'icd');
+      .leftJoinAndSelect('encounter.icd_ref', 'icd');
 
     if (patient_id) {
       qb.where('encounter.patient_id = :patient_id', { patient_id });
@@ -150,7 +150,7 @@ export class EncountersService {
         'patient',
         'doctor',
         'assigned_room',
-        'final_icd',
+        'icd_ref',
       ],
     });
 

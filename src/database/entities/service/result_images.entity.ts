@@ -4,10 +4,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ServiceResult } from './service_results.entity';
 import { StaffProfile } from '../auth/staff_profiles.entity';
+import { ImageAnnotation } from 'src/database/entities/ai/image_annotations.entity';
 
 @Entity('result_images')
 export class ResultImage {
@@ -29,6 +31,9 @@ export class ResultImage {
   @ManyToOne(() => StaffProfile, { nullable: true })
   @JoinColumn({ name: 'uploaded_by', referencedColumnName: 'staff_id' })
   uploader?: StaffProfile;
+
+  @OneToMany(() => ImageAnnotation, (ann) => ann.image)
+  annotations: ImageAnnotation[];
 
   // --- COLUMNS ---
   @Column({ name: 'public_id', length: 255, nullable: true })

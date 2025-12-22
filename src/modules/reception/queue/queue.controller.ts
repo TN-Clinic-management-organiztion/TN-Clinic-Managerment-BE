@@ -10,6 +10,7 @@ import {
   HttpStatus,
   ParseIntPipe,
   ParseEnumPipe,
+  ValidationPipe,
 } from '@nestjs/common';
 import { QueueService } from './queue.service';
 import {
@@ -41,7 +42,10 @@ export class QueueController {
   @Get('tickets/today/:roomId')
   getTodayTickets(
     @Param('roomId', ParseIntPipe) roomId: number,
-    @Query('ticket_type', new ParseEnumPipe(QueueTicketType, { optional: true }))
+    @Query(
+      'ticket_type',
+      new ParseEnumPipe(QueueTicketType, { optional: true }),
+    )
     ticketType?: QueueTicketType,
     @Query('source', new ParseEnumPipe(QueueSource, { optional: true }))
     source?: QueueSource,
@@ -52,7 +56,10 @@ export class QueueController {
   @Get('tickets/waiting/:roomId')
   getWaitingTickets(
     @Param('roomId', ParseIntPipe) roomId: number,
-    @Query('ticket_type', new ParseEnumPipe(QueueTicketType, { optional: true }))
+    @Query(
+      'ticket_type',
+      new ParseEnumPipe(QueueTicketType, { optional: true }),
+    )
     ticketType?: QueueTicketType,
     @Query('source', new ParseEnumPipe(QueueSource, { optional: true }))
     source?: QueueSource,
@@ -116,5 +123,10 @@ export class QueueController {
   @HttpCode(HttpStatus.OK)
   resetCounters() {
     return this.queueService.resetCounters();
+  }
+
+  @Get('/counters/last-number')
+  getLastNumberOfRoomToDay(@Param('id') id: number) {
+    return this.queueService.getLastNumberOfRoomToday(id);
   }
 }

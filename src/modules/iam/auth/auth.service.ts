@@ -102,6 +102,7 @@ export class AuthService {
         user_type: 'STAFF',
         role: staff.role?.role_code,
         staff_id: staff.staff_id,
+        assigned_room_id: staff.assigned_room_id || -1,
       };
     } else {
       // Kiểm tra có phải patient không
