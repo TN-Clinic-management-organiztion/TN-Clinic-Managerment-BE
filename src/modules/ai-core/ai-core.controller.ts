@@ -13,8 +13,11 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UploadedFile,
   UseInterceptors,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiConsumes } from '@nestjs/swagger';
 import { AiCoreService } from './ai-core.service';
@@ -27,6 +30,10 @@ import { ToggleDeprecateDto } from './dto/toggle-deprecate.dto';
 import { QueryResultImagesDto } from './dto/query-result-images.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateAiAnnotationDto } from './dto/create-ai-annotation.dto';
+import { ExportAnnotationsDto } from './dto/export-annotation.dto';
+import type { Response } from 'express';
+import archiver from 'archiver';
+import { SkipTransform } from 'src/common/decorators/skip-transform.decorator';
 
 @ApiTags('AI Core')
 @Controller('ai-core')
@@ -218,5 +225,41 @@ export class AiCoreController {
   @ApiOperation({ summary: 'Get statistics by labeler' })
   async getLabelerStatistics(@Param('staff_id') staff_id: string) {
     return await this.aiCoreService.getLabelerStatistics(staff_id);
+  }
+
+  @Post('export/yolo.zip')
+  @HttpCode(200)
+  @SkipTransform()
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  async exportYoloZip(@Body() dto: ExportAnnotationsDto, @Res() res: Response) {
+    const result = await this.aiCoreService.exportYOLO(dto);
+
+    const zipName = `yolo_export_${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
+
+    // header để browser tự download
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${zipName}"`);
+    res.setHeader('Cache-Control', 'no-store');
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    // Nếu zip lỗi -> kết thúc response
+    archive.on('error', (err) => {
+      // tránh response treo
+      try {
+        res.status(500).send(`Zip error: ${err.message}`);
+      } catch {}
+    });
+
+    // pipe zip stream vào response
+    archive.pipe(res);
+
+    // append từng file vào zip
+    for (const [path, content] of Object.entries(result.files)) {
+      archive.append(content ?? '', { name: path });
+    }
+
+    // finalize => kết thúc zip
+    await archive.finalize();
   }
 }

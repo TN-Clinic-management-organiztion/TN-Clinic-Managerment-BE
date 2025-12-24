@@ -278,8 +278,6 @@ export class AiCoreService {
       };
     });
 
-    console.log('mappedData: ', mappedData);
-
     return {
       items: mappedData,
       meta: {
@@ -893,121 +891,121 @@ export class AiCoreService {
   //   };
   // }
 
-  // /**
-  //  * EXPORT ANNOTATIONS - YOLO FORMAT
-  //  */
-  // async exportYOLO(dto: ExportAnnotationsDto) {
-  //   const annotations = await this.getAnnotationsForExport(dto);
+  /**
+   * Helper: Get annotations for export
+   */
+  private async getAnnotationsForExport(dto: ExportAnnotationsDto) {
+    const query = this.imageAnnotationRepo
+      .createQueryBuilder('ann')
+      .leftJoinAndSelect('ann.image', 'img')
+      .where('ann.annotation_source = :source', { source: AnnotationSource.HUMAN })
+      .andWhere('ann.annotation_status = :status', { status: AnnotationStatus.APPROVED });
 
-  //   if (annotations.length === 0) {
-  //     throw new NotFoundException('No annotations found to export');
-  //   }
+    if (dto.project_id) {
+      // Export by project
+      query
+        .innerJoin(
+          'annotation_project_images',
+          'pi',
+          'pi.image_id = ann.image_id',
+        )
+        .andWhere('pi.project_id = :projectId', { projectId: dto.project_id });
+    } else if (dto.image_ids && dto.image_ids.length > 0) {
+      // Export by image IDs
+      query.andWhere('ann.image_id IN (:...imageIds)', { imageIds: dto.image_ids });
+    }
 
-  //   // Map classes
-  //   const classMap = new Map<string, number>();
-  //   let classId = 0;
+    query.orderBy('ann.image_id', 'ASC');
 
-  //   // Result: { filename: "labels content" }
-  //   const yoloFiles: Record<string, string> = {};
+    return await query.getMany();
+  }
 
-  //   for (const ann of annotations) {
-  //     const fileName = ann.image?.file_name || `image_${ann.image_id}.png`;
-  //     const txtFileName = fileName.replace(/\.(png|jpg|jpeg)$/i, '.txt');
+  /**
+   * EXPORT ANNOTATIONS - YOLO FORMAT
+   */
+  async exportYOLO(dto: ExportAnnotationsDto) {
+    const annotations = await this.getAnnotationsForExport(dto);
 
-  //     const boxes = Array.isArray(ann.annotation_data) ? ann.annotation_data : [];
-  //     const lines: string[] = [];
+    if (annotations.length === 0) {
+      throw new NotFoundException('No annotations found to export');
+    }
 
-  //     // Get image dimensions (default 1024x1024 if not available)
-  //     const imgWidth = ann.image_width || 1024;
-  //     const imgHeight = ann.image_height || 1024;
+    // Map classes
+    const classMap = new Map<string, number>();
+    let classId = 0;
 
-  //     for (const box of boxes) {
-  //       const className = box.class?.name || 'unknown';
+    // Result: { filename: "labels content" }
+    const yoloFiles: Record<string, string> = {};
 
-  //       // Add class if not exists
-  //       if (!classMap.has(className)) {
-  //         classMap.set(className, classId);
-  //         classId++;
-  //       }
+    for (const ann of annotations) {
+      const fileName = ann.image?.file_name || `image_${ann.image_id}.png`;
+      const txtFileName = fileName.replace(/\.(png|jpg|jpeg)$/i, '.txt');
 
-  //       const classIdx = classMap.get(className);
-  //       const bbox = box.bbox || {};
+      const boxes = Array.isArray(ann.annotation_data) ? ann.annotation_data : [];
+      const lines: string[] = [];
 
-  //       // Convert to YOLO format (normalized)
-  //       // YOLO: <class_id> <x_center> <y_center> <width> <height>
-  //       const x1 = bbox.x1 || 0;
-  //       const y1 = bbox.y1 || 0;
-  //       const x2 = bbox.x2 || 0;
-  //       const y2 = bbox.y2 || 0;
+      // Get image dimensions (default 1024x1024 if not available)
+      const imgWidth = ann.image?.image_width || 1024;
+      const imgHeight = ann.image?.image_height || 1024;
 
-  //       const xCenter = ((x1 + x2) / 2) / imgWidth;
-  //       const yCenter = ((y1 + y2) / 2) / imgHeight;
-  //       const width = (x2 - x1) / imgWidth;
-  //       const height = (y2 - y1) / imgHeight;
+      for (const box of boxes) {
+        const className = box.class?.name || 'unknown';
 
-  //       // Format: class x_center y_center width height
-  //       lines.push(
-  //         `${classIdx} ${xCenter.toFixed(6)} ${yCenter.toFixed(6)} ${width.toFixed(6)} ${height.toFixed(6)}`
-  //       );
-  //     }
+        // Add class if not exists
+        if (!classMap.has(className)) {
+          classMap.set(className, classId);
+          classId++;
+        }
 
-  //     yoloFiles[txtFileName] = lines.join('\n');
-  //   }
+        const classIdx = classMap.get(className);
+        const bbox = box.bbox || {};
 
-  //   // Create classes.txt
-  //   const classesList = Array.from(classMap.entries())
-  //     .sort((a, b) => a[1] - b[1])
-  //     .map(([name]) => name);
+        // Convert to YOLO format (normalized)
+        // YOLO: <class_id> <x_center> <y_center> <width> <height>
+        const x1 = bbox.x1 || 0;
+        const y1 = bbox.y1 || 0;
+        const x2 = bbox.x2 || 0;
+        const y2 = bbox.y2 || 0;
 
-  //   yoloFiles['classes.txt'] = classesList.join('\n');
+        const xCenter = ((x1 + x2) / 2) / imgWidth;
+        const yCenter = ((y1 + y2) / 2) / imgHeight;
+        const width = (x2 - x1) / imgWidth;
+        const height = (y2 - y1) / imgHeight;
 
-  //   // Create data.yaml
-  //   yoloFiles['data.yaml'] = [
-  //     '# YOLO Dataset Configuration',
-  //     `# Generated: ${new Date().toISOString()}`,
-  //     '',
-  //     'names:',
-  //     ...classesList.map((name, idx) => `  ${idx}: ${name}`),
-  //     '',
-  //     `nc: ${classesList.length}  # number of classes`,
-  //   ].join('\n');
+        // Format: class x_center y_center width height
+        lines.push(
+          `${classIdx} ${xCenter.toFixed(6)} ${yCenter.toFixed(6)} ${width.toFixed(6)} ${height.toFixed(6)}`
+        );
+      }
 
-  //   return {
-  //     format: 'YOLO',
-  //     total_images: Object.keys(yoloFiles).length - 2, // Trừ classes.txt và data.yaml
-  //     total_classes: classesList.length,
-  //     classes: classesList,
-  //     files: yoloFiles,
-  //     download_url: null,
-  //   };
-  // }
+      yoloFiles[txtFileName] = lines.join('\n');
+    }
 
-  // /**
-  //  * Helper: Get annotations for export
-  //  */
-  // private async getAnnotationsForExport(dto: ExportAnnotationsDto) {
-  //   const query = this.imageAnnotationRepo
-  //     .createQueryBuilder('ann')
-  //     .leftJoinAndSelect('ann.image', 'img')
-  //     .where('ann.annotation_source = :source', { source: AnnotationSource.HUMAN })
-  //     .andWhere('ann.annotation_status = :status', { status: AnnotationStatus.APPROVED });
+    // Create classes.txt
+    const classesList = Array.from(classMap.entries())
+      .sort((a, b) => a[1] - b[1])
+      .map(([name]) => name);
 
-  //   if (dto.project_id) {
-  //     // Export by project
-  //     query
-  //       .innerJoin(
-  //         'annotation_project_images',
-  //         'pi',
-  //         'pi.image_id = ann.image_id',
-  //       )
-  //       .andWhere('pi.project_id = :projectId', { projectId: dto.project_id });
-  //   } else if (dto.image_ids && dto.image_ids.length > 0) {
-  //     // Export by image IDs
-  //     query.andWhere('ann.image_id IN (:...imageIds)', { imageIds: dto.image_ids });
-  //   }
+    yoloFiles['classes.txt'] = classesList.join('\n');
 
-  //   query.orderBy('ann.image_id', 'ASC');
+    // Create data.yaml
+    yoloFiles['data.yaml'] = [
+      '# YOLO Dataset Configuration',
+      `# Generated: ${new Date().toISOString()}`,
+      '',
+      'names:',
+      ...classesList.map((name, idx) => `  ${idx}: ${name}`),
+      '',
+      `nc: ${classesList.length}  # number of classes`,
+    ].join('\n');
 
-  //   return await query.getMany();
-  // }
+    return {
+      format: 'YOLO',
+      total_images: Object.keys(yoloFiles).length - 2, // Trừ classes.txt và data.yaml
+      total_classes: classesList.length,
+      classes: classesList,
+      files: yoloFiles,
+      download_url: null,
+    };
+  }
 }
