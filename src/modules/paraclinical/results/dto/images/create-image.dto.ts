@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsUrl, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsNumber, isNumber, IsOptional, IsString, IsUrl, IsUUID } from 'class-validator';
 
 export class CreateResultImageDto {
   @IsOptional()
@@ -24,6 +24,14 @@ export class CreateResultImageDto {
   @IsOptional()
   @IsString()
   mime_type?: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  image_width: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  image_height: number;
 
   @IsNotEmpty()
   @IsUUID()

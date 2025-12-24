@@ -132,6 +132,8 @@ export class ResultsService {
         file_name: dto.file_name,
         file_size: dto.file_size,
         mime_type: dto.mime_type,
+        image_height: dto.image_height,
+        image_width: dto.image_width,
         uploaded_by: dto.uploaded_by,
       });
 

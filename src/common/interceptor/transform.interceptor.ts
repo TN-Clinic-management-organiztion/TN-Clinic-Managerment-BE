@@ -1,33 +1,37 @@
 // src/common/interceptors/transform.interceptor.ts
 import {
+  CallHandler,
+  ExecutionContext,
   Injectable,
   NestInterceptor,
-  ExecutionContext,
-  CallHandler,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-
-export interface Response<T> {
-  statusCode: number;
-  message: string;
-  data: T;
-}
+import { SKIP_TRANSFORM_KEY } from '../decorators/skip-transform.decorator';
 
 @Injectable()
-export class TransformInterceptor<T>
-  implements NestInterceptor<T, Response<T>> {
-  intercept(
-    context: ExecutionContext,
-    next: CallHandler,
-  ): Observable<Response<T>> {
+export class TransformInterceptor implements NestInterceptor {
+  constructor(private readonly reflector: Reflector) {}
+
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const skip = this.reflector.getAllAndOverride<boolean>(SKIP_TRANSFORM_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (skip) return next.handle();
+
     return next.handle().pipe(
-      map((data) => ({
-        statusCode: context.switchToHttp().getResponse().statusCode,
-        success: true,
-        message: data.message || 'Success',
-        data: data.data || data, 
-      })),
+      map((data) => {
+        if (data === undefined || data === null) return data;
+
+        return {
+          success: true,
+          message: (data as any)?.message ?? 'OK',
+          data,
+        };
+      }),
     );
   }
 }
