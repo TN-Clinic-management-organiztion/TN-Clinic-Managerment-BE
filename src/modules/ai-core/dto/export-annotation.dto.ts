@@ -6,8 +6,8 @@ export enum ExportFormat {
 }
 
 export class ExportAnnotationsDto {
-  @IsEnum(ExportFormat)
-  format: ExportFormat;
+  // @IsEnum(ExportFormat)
+  // format: ExportFormat;
 
   @IsOptional()
   @IsArray()

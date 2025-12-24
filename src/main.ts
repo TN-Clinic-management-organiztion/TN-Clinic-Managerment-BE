@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { configSwagger } from 'src/config/swagger.config';
@@ -26,7 +26,8 @@ async function bootstrap() {
   // Config swagger
   configSwagger(app);
   // Interceptor
-  app.useGlobalInterceptors(new TransformInterceptor());
+  const reflector = app.get(Reflector);
+  app.useGlobalInterceptors(new TransformInterceptor(reflector));
   // Filter
   app.useGlobalFilters(new HttpExceptionFilter());
 

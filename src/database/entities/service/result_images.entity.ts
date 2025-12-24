@@ -48,6 +48,12 @@ export class ResultImage {
   @Column({ name: 'file_size', type: 'bigint', nullable: true })
   file_size?: string;
 
+  @Column({name: 'image_width', type: 'int', nullable: true })
+  image_width?: number
+
+  @Column({name: 'image_height', type: 'int', nullable: true })
+  image_height?: number
+
   @Column({ name: 'mime_type', length: 100, nullable: true })
   mime_type?: string;
 
