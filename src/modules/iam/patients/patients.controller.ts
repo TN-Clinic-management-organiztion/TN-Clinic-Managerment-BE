@@ -17,9 +17,10 @@ import { PatientSearchDto } from './dto/patient-search.dto';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { RolesGuard } from 'src/common/guards/role.guard';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @Controller('patients')
-// @UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 

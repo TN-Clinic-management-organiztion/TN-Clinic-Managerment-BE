@@ -166,6 +166,8 @@ export class ResultsService {
         public_id: cloudImage.public_id,
         file_name: file.originalname,
         file_size: String(file.size),
+        image_height: dto.image_height,
+        image_width: dto.image_width,
         mime_type: file.mimetype,
       });
 
