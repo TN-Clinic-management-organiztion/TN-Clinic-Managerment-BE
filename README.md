@@ -1,106 +1,328 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# TN Clinic Management Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend API cho hệ thống quản lý phòng khám sử dụng NestJS, TypeORM, PostgreSQL và tích hợp AI.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 📋 Mục lục
 
-## Description
+- [Yêu cầu hệ thống](#yêu-cầu-hệ-thống)
+- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
+- [Biến môi trường](#biến-môi-trường)
+- [Cài đặt và chạy Local](#cài-đặt-và-chạy-local)
+- [Chạy với Docker](#chạy-với-docker)
+- [Migration Database](#migration-database)
+- [API Documentation](#api-documentation)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🛠️ Yêu cầu hệ thống
 
-## Project setup
+- **Node.js**: >= 18.x
+- **npm**: >= 9.x
+- **PostgreSQL**: >= 16.x
+- **Docker** (tùy chọn): >= 20.x
+- **Docker Compose** (tùy chọn): >= 2.x
 
-```bash
-$ npm install
+## 📁 Cấu trúc thư mục
+
+```
+TN-Clinic-Managerment-BE/
+├── src/
+│   ├── common/              # Shared components
+│   │   ├── decorators/      # Custom decorators (CurrentUser, Roles, Public, etc.)
+│   │   ├── filters/         # Exception filters
+│   │   ├── guards/          # Auth guards (JWT, Local, Role)
+│   │   ├── interceptor/     # Response interceptors
+│   │   ├── middleware/      # Custom middleware
+│   │   └── strategies/      # Passport strategies
+│   ├── config/              # Configuration files
+│   │   ├── auth.config.ts   # JWT configuration
+│   │   ├── cloudinary.config.ts
+│   │   ├── swagger.config.ts
+│   │   ├── typeorm.config.ts
+│   │   └── upload.config.ts
+│   ├── constants/           # Application constants
+│   ├── database/
+│   │   ├── entities/        # TypeORM entities
+│   │   └── seeds/           # Database seeds
+│   ├── migrations/          # Database migrations
+│   ├── modules/             # Feature modules
+│   │   ├── ai-core/         # AI integration module
+│   │   ├── clinical/        # Clinical management
+│   │   ├── iam/             # Identity & Access Management
+│   │   ├── paraclinical/    # Paraclinical services
+│   │   ├── reception/       # Reception/Queue management
+│   │   └── system/          # System settings
+│   ├── shared/              # Shared utilities
+│   │   ├── cloudinary/      # Cloudinary service
+│   │   └── Tables/          # Table definitions
+│   ├── types/               # TypeScript type definitions
+│   ├── utils/               # Utility functions
+│   ├── app.module.ts        # Root module
+│   └── main.ts              # Application entry point
+├── dist/                    # Compiled JavaScript files
+├── test/                    # E2E tests
+├── docker-compose.yaml      # Docker Compose configuration
+├── Dockerfile               # Docker image definition
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
-```bash
-$ npm run migration:create -- src/database/migrations/SeedAdminUser
+## 🔐 Biến môi trường
+
+Tạo file `.env` ở thư mục gốc với các biến sau:
+
+```env
+# Server Configuration
+PORT=8080
+
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=your_db_username
+DB_PASSWORD=your_db_password
+DB_NAME=your_database_name
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_key
+JWT_ACCESS_EXPIRY=1d
+JWT_REFRESH_EXPIRY=7d
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# AI Service Configuration
+AI_SERVICE_URL=http://localhost:8000/api/v1
+
+# File Upload Configuration (optional)
+MAX_FILE_SIZE=10485760
 ```
 
-```bash
-$ npm run migration:generate -- src/database/migrations/AddPhoneToUser
-```
+### Giải thích các biến môi trường
 
-## Compile and run the project
+- **PORT**: Port mà server sẽ chạy (mặc định: 8080)
+- **DB_***: Thông tin kết nối PostgreSQL
+- **JWT_***: Cấu hình JWT authentication
+- **CLOUDINARY_***: Thông tin Cloudinary cho upload ảnh
+- **AI_SERVICE_URL**: URL của AI service (nếu có)
+- **MAX_FILE_SIZE**: Kích thước file tối đa (bytes, mặc định: 10MB)
 
-```bash
-# development
-$ npm run start
+## 💻 Cài đặt và chạy Local
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+### 1. Clone repository
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+git clone <repository-url>
+cd TN-Clinic-Managerment-BE
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 2. Cài đặt dependencies
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 3. Cấu hình môi trường
 
-## Resources
+Tạo file `.env` và điền các biến môi trường như đã mô tả ở trên.
 
-Check out a few resources that may come in handy when working with NestJS:
+### 4. Setup Database
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Đảm bảo PostgreSQL đang chạy và tạo database:
 
-## Support
+```bash
+# Kết nối PostgreSQL
+psql -U postgres
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# Tạo database
+CREATE DATABASE your_database_name;
+```
 
-## Stay in touch
+### 5. Chạy migrations
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+# Build project trước
+npm run build
 
-## License
+# Chạy migrations
+npm run migration:run
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### 6. Chạy ứng dụng
+
+```bash
+# Development mode (với hot-reload)
+npm run start:dev
+
+# Production mode
+npm run start:prod
+
+# Debug mode
+npm run start:debug
+```
+
+Ứng dụng sẽ chạy tại: **http://localhost:8080**
+
+API Documentation (Swagger): **http://localhost:8080/api-docs**
+
+## 🐳 Chạy với Docker
+
+### 1. Cấu hình môi trường
+
+Tạo file `.env` với các biến môi trường. Lưu ý:
+- `DB_HOST` sẽ được override thành `postgres_db` trong Docker
+- `PORT` phải khớp với port mapping trong docker-compose.yaml
+
+### 2. Build và chạy với Docker Compose
+
+```bash
+# Build và khởi động tất cả services
+docker-compose up -d
+
+# Xem logs
+docker-compose logs -f backend
+
+# Dừng services
+docker-compose down
+
+# Dừng và xóa volumes (xóa dữ liệu)
+docker-compose down -v
+```
+
+### 3. Chạy migrations trong Docker
+
+```bash
+# Vào container backend
+docker exec -it backend sh
+
+# Chạy migrations
+npm run migration:run
+```
+
+Hoặc chạy trực tiếp từ host:
+
+```bash
+docker exec -it backend npm run migration:run
+```
+
+### 4. Các services trong Docker Compose
+
+- **backend**: Ứng dụng NestJS (port: 8080)
+- **postgres_db**: PostgreSQL database (port: 5432)
+- **redis**: Redis cache (port: 6379)
+- **rabbitmq**: RabbitMQ message broker
+  - AMQP: port 5672
+  - Management UI: http://localhost:15672 (admin/pass)
+
+### 5. Kiểm tra trạng thái
+
+```bash
+# Kiểm tra containers đang chạy
+docker-compose ps
+
+# Kiểm tra logs của một service
+docker-compose logs backend
+docker-compose logs postgres_db
+```
+
+## 🔄 Migration Database
+
+### Tạo migration mới
+
+```bash
+# Tạo migration trống
+npm run migration:create -- src/migrations/YourMigrationName
+
+# Tạo migration tự động từ thay đổi entities
+npm run migration:generate -- src/migrations/YourMigrationName
+```
+
+### Chạy migrations
+
+```bash
+# Chạy tất cả migrations chưa chạy
+npm run migration:run
+
+# Revert migration gần nhất
+npm run migration:revert
+
+# Xem trạng thái migrations
+npm run migration:show
+```
+
+### Lưu ý khi chạy migrations
+
+1. **Luôn build project trước khi chạy migration:**
+   ```bash
+   npm run build
+   npm run migration:run
+   ```
+
+2. **Trong Docker:**
+   ```bash
+   docker exec -it backend npm run build
+   docker exec -it backend npm run migration:run
+   ```
+
+3. **Kiểm tra migrations đã chạy:**
+   ```bash
+   npm run migration:show
+   ```
+
+
+## 🚀 Scripts có sẵn
+
+```bash
+# Development
+npm run start:dev          # Chạy với hot-reload
+npm run start:debug        # Chạy với debug mode
+
+# Production
+npm run build              # Build project
+npm run start:prod         # Chạy production mode
+
+# Database
+npm run migration:create   # Tạo migration mới
+npm run migration:generate # Generate migration từ entities
+npm run migration:run      # Chạy migrations
+npm run migration:revert   # Revert migration
+npm run migration:show     # Xem trạng thái migrations
+
+# Testing
+npm run test               # Unit tests
+npm run test:e2e           # E2E tests
+npm run test:cov           # Test coverage
+
+# Code quality
+npm run lint               # Lint code
+npm run format             # Format code với Prettier
+```
+
+## 🔧 Troubleshooting
+
+### Lỗi kết nối database
+
+- Kiểm tra PostgreSQL đang chạy
+- Kiểm tra thông tin kết nối trong `.env`
+- Trong Docker, đảm bảo `DB_HOST=postgres_db`
+
+### Lỗi migration
+
+- Đảm bảo đã build project: `npm run build`
+- Kiểm tra kết nối database
+- Xem logs chi tiết: `npm run migration:show`
+
+### Port 8080 đã được sử dụng
+
+- Thay đổi `PORT` trong `.env`
+- Hoặc dừng service đang dùng port 8080
+
+### Lỗi trong Docker
+
+- Kiểm tra logs: `docker-compose logs backend`
+- Đảm bảo `.env` file tồn tại
+- Rebuild images: `docker-compose up -d --build`
+
+## 📄 License
+
+UNLICENSED
