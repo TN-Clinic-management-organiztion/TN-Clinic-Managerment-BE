@@ -218,9 +218,9 @@ export class AiCoreService {
           new Brackets((qb) => {
             // 1. Ảnh chưa có annotation nào
             qb.where('ann.annotation_id IS NULL')
-              // 2. Ảnh có HUMAN annotation bị REJECTED/IN_PROGRESS/DEPRECATED
+              // 2. Ảnh có HUMAN annotation bị REJECTED/IN_PROGRESS/DEPRECATED và không có anno nào được APPROVED
               .orWhere(
-                'ann.annotation_source = :source AND ann.annotation_status IN (:...st)',
+                `ann.annotation_source = :source AND ann.annotation_status IN (:...st) AND NOT ${hasValidHumanAnnotation}`,
                 {
                   source: AnnotationSource.HUMAN,
                   st: [
