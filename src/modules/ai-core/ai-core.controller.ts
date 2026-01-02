@@ -49,7 +49,7 @@ export class AiCoreController {
   @ApiOperation({ summary: 'Run AI detection from uploaded image file (demo)' })
   async detectFromFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body() dto: Partial<RunAiDetectionDto>, // reuse model_name, confidence
+    @Body() dto: Partial<RunAiDetectionDto>,
   ) {
     return await this.aiCoreService.runDetectionForUploadedFile(file, dto);
   }

@@ -10,13 +10,12 @@ export class SaveHumanAnnotationDto {
   @IsNotEmpty()
   labeled_by: string;
 
-  // Enum validation: Đảm bảo FE gửi đúng string 'DRAFT' | 'REVIEWED'
+  // Enum validation
   @IsEnum(AnnotationStatus)
   @IsOptional()
   annotation_status?: AnnotationStatus;
 }
 
-// DTO dùng khi Bác sĩ quản lý vào Approve
 export class ApproveAnnotationDto {
   @IsUUID()
   @IsNotEmpty()

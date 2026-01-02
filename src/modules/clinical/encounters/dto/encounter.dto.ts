@@ -46,23 +46,23 @@ export class CreateEncounterDto {
   @Type(() => Number)
   @IsNumber()
   @Min(0)
-  weight?: number; // Cân nặng (kg)
+  weight?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
-  height?: number; // Chiều cao (cm)
+  height?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  bmi?: number; // BMI (Có thể gửi từ FE hoặc để BE tự tính)
+  bmi?: number;
 
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  temperature?: number; // Nhiệt độ
+  temperature?: number;
 
   @IsOptional()
   @Type(() => Number)

@@ -4,7 +4,7 @@ export class CreateIcd10Dto {
   @IsNotEmpty({ message: 'Mã ICD không được để trống' })
   @IsString()
   @MaxLength(10)
-  icd_code: string; // PK phải tự nhập
+  icd_code: string;
 
   @IsNotEmpty({ message: 'Tên tiếng Việt không được để trống' })
   @IsString()
@@ -19,7 +19,7 @@ export class CreateIcd10Dto {
   @IsOptional()
   @IsString()
   @MaxLength(10)
-  parent_code?: string; // Chỉ cần gửi mã cha (FK)
+  parent_code?: string;
 
   @IsOptional()
   @IsInt()
