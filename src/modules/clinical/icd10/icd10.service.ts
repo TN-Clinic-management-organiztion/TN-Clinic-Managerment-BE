@@ -16,12 +16,11 @@ export class Icd10Service {
     @InjectRepository(RefIcd10)
     private readonly icd10Repository: Repository<RefIcd10>,
     @InjectDataSource()
-    private readonly dataSource: DataSource, // Inject DataSource để dùng Transaction
+    private readonly dataSource: DataSource,
   ) {}
 
-  // 1. TẠO MỚI (CÓ TRANSACTION & LOGIC CẬP NHẬT CHA)
+  // 1. TẠO MỚI
   async create(createIcd10Dto: CreateIcd10Dto): Promise<RefIcd10> {
-    // Sử dụng transaction để đảm bảo tính toàn vẹn
     return await this.dataSource.transaction(async (manager) => {
       // A. Kiểm tra trùng mã (Check Duplicate)
       const existing = await manager.findOne(RefIcd10, {
@@ -44,25 +43,20 @@ export class Icd10Service {
             `Mã cha '${createIcd10Dto.parent_code}' không tồn tại.`,
           );
         }
-
-        // --- LOGIC BẠN YÊU CẦU ---
         // Nếu cha đang là leaf (True) -> Cập nhật thành False
         if (parent.is_leaf === true) {
           await manager.update(RefIcd10, parent.icd_code, { is_leaf: false });
         }
-
-        // (Optional) Tự động tính Level cho con dựa trên cha
         // Nếu người dùng không gửi level, ta lấy level cha + 1
         if (!createIcd10Dto.level) {
           createIcd10Dto.level = (parent.level || 0) + 1;
         }
       }
-
       // C. Tạo con mới
-      // Mặc định con mới tạo ra sẽ là Leaf (is_leaf = true) trừ khi logic khác
+      // Mặc định con mới tạo ra sẽ là Leaf (is_leaf = true)
       const newItem = manager.create(RefIcd10, {
         ...createIcd10Dto,
-        is_leaf: true, // Force new item to be leaf initially
+        is_leaf: true,
       });
 
       return await manager.save(newItem);
@@ -113,7 +107,7 @@ export class Icd10Service {
   async findOne(code: string): Promise<RefIcd10> {
     const item = await this.icd10Repository.findOne({
       where: { icd_code: code },
-      relations: ['parent'], // Lấy luôn thông tin bệnh cha (nếu có)
+      relations: ['parent'],
     });
 
     if (!item) {
@@ -233,9 +227,7 @@ export class Icd10Service {
         where: { icd_code: newCode },
       });
 
-      // FIX LỖI 2322: Kiểm tra null trước khi trả về
       if (!result) {
-        // Trường hợp này thực tế rất khó xảy ra trong transaction, nhưng cần thêm để TS hài lòng
         throw new NotFoundException(
           `Lỗi hệ thống: Không tìm thấy bản ghi sau khi cập nhật.`,
         );

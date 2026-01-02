@@ -155,8 +155,6 @@ export class ResultsService {
         throw new BadRequestException('File is required');
       }
 
-      console.log('Vào được hàm!');
-
       const cloudImage = await this.cloudinaryService.uploadMedicalImage(file);
 
       const image = this.imageRepo.create({

@@ -12,9 +12,9 @@ export class ExportAnnotationsDto {
   @IsOptional()
   @IsArray()
   @IsUUID('4', { each: true })
-  image_ids?: string[]; // Nếu không truyền = export tất cả
+  image_ids?: string[];
 
   @IsOptional()
   @IsUUID()
-  project_id?: string; // Export cả project
+  project_id?: string;
 }
