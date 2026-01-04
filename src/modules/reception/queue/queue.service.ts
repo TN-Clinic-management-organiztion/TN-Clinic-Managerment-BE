@@ -19,6 +19,7 @@ import {
   AssignServicesDto,
 } from './dto/queue.dto';
 import { RoomType } from '../../../database/entities/auth/org_rooms.entity';
+import { QueueGateway } from 'src/modules/reception/queue/queue.gateway';
 
 @Injectable()
 export class QueueService {
@@ -28,6 +29,7 @@ export class QueueService {
     @InjectRepository(QueueCounter)
     private readonly counterRepo: Repository<QueueCounter>,
     private readonly dataSource: DataSource,
+    private readonly queueGateway: QueueGateway,
   ) {}
 
   private startOfDay(d = new Date()) {
@@ -190,10 +192,14 @@ export class QueueService {
         service_ids: dto.service_ids?.length ? dto.service_ids : undefined,
       });
 
-      const saved = await queryRunner.manager.save(ticket); // saved là QueueTicket (không phải array)
+      const saved = await queryRunner.manager.save(ticket); // saved là QueueTicket
       await queryRunner.commitTransaction();
 
-      return this.findOne(saved.ticket_id);
+      // Emit websocket event
+      const fullTicket = await this.findOne(saved.ticket_id);
+      this.queueGateway.emitTicketCreated(dto.room_id, fullTicket);
+
+      return fullTicket;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;
@@ -311,7 +317,13 @@ export class QueueService {
     nextTicket.status = QueueStatus.CALLED;
     nextTicket.called_at = new Date();
 
-    return this.ticketRepo.save(nextTicket);
+    const saved = await this.ticketRepo.save(nextTicket);
+
+    // EMIT WEBSOCKET EVENT
+    const fullTicket = await this.findOne(saved.ticket_id);
+    this.queueGateway.emitTicketCalled(roomId, fullTicket);
+
+    return fullTicket;
   }
 
   async callSpecific(ticketId: string): Promise<QueueTicket> {
@@ -326,7 +338,13 @@ export class QueueService {
 
     ticket.status = QueueStatus.CALLED;
     ticket.called_at = new Date();
-    return this.ticketRepo.save(ticket);
+        const saved = await this.ticketRepo.save(ticket);
+
+    // EMIT WEBSOCKET EVENT
+    const fullTicket = await this.findOne(saved.ticket_id);
+    this.queueGateway.emitTicketCalled(ticket.room_id, fullTicket);
+
+    return fullTicket;
   }
 
   async startService(ticketId: string): Promise<QueueTicket> {
@@ -341,7 +359,13 @@ export class QueueService {
 
     ticket.status = QueueStatus.IN_PROGRESS;
     ticket.started_at = new Date();
-    return this.ticketRepo.save(ticket);
+        const saved = await this.ticketRepo.save(ticket);
+
+    // EMIT WEBSOCKET EVENT
+    const fullTicket = await this.findOne(saved.ticket_id);
+    this.queueGateway.emitTicketStarted(ticket.room_id, fullTicket);
+
+    return fullTicket;
   }
 
   async completeTicket(ticketId: string): Promise<QueueTicket> {
@@ -358,7 +382,13 @@ export class QueueService {
 
     ticket.status = QueueStatus.COMPLETED;
     ticket.completed_at = new Date();
-    return this.ticketRepo.save(ticket);
+        const saved = await this.ticketRepo.save(ticket);
+
+    // EMIT WEBSOCKET EVENT
+    const fullTicket = await this.findOne(saved.ticket_id);
+    this.queueGateway.emitTicketCompleted(ticket.room_id, fullTicket);
+
+    return fullTicket;
   }
 
   async skipTicket(ticketId: string): Promise<QueueTicket> {
@@ -376,7 +406,13 @@ export class QueueService {
 
     ticket.status = QueueStatus.SKIPPED;
     ticket.completed_at = new Date();
-    return this.ticketRepo.save(ticket);
+    const saved = await this.ticketRepo.save(ticket);
+
+    // EMIT WEBSOCKET EVENT
+    const fullTicket = await this.findOne(saved.ticket_id);
+    this.queueGateway.emitTicketSkipped(ticket.room_id, fullTicket);
+
+    return fullTicket;
   }
 
   async assignServices(
@@ -401,7 +437,13 @@ export class QueueService {
     }
 
     ticket.service_ids = dto.service_ids;
-    return this.ticketRepo.save(ticket);
+    const saved = await this.ticketRepo.save(ticket);
+
+    // EMIT WEBSOCKET EVENT
+    const fullTicket = await this.findOne(saved.ticket_id);
+    this.queueGateway.emitTicketUpdated(ticket.room_id, fullTicket);
+
+    return fullTicket;
   }
 
   async update(id: string, dto: UpdateTicketDto): Promise<QueueTicket> {
@@ -409,6 +451,12 @@ export class QueueService {
     if (!ticket) throw new NotFoundException(`Ticket with ID ${id} not found`);
 
     Object.assign(ticket, dto);
-    return this.ticketRepo.save(ticket);
+    const saved = await this.ticketRepo.save(ticket);
+
+    // EMIT WEBSOCKET EVENT
+    const fullTicket = await this.findOne(saved.ticket_id);
+    this.queueGateway.emitTicketUpdated(ticket.room_id, fullTicket);
+
+    return fullTicket;
   }
 }
