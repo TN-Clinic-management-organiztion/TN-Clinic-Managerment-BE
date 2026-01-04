@@ -14,6 +14,10 @@ import {
   CompleteConsultationDto,
   EncounterStatus,
 } from './dto/encounter.dto';
+import {
+  QueueStatus,
+  QueueTicket,
+} from 'src/database/entities/reception/queue_tickets.entity';
 
 @Injectable()
 export class EncountersService {
@@ -146,12 +150,7 @@ export class EncountersService {
   async findOne(id: string): Promise<MedicalEncounter> {
     const encounter = await this.encounterRepo.findOne({
       where: { encounter_id: id },
-      relations: [
-        'patient',
-        'doctor',
-        'assigned_room',
-        'icd_ref',
-      ],
+      relations: ['patient', 'doctor', 'assigned_room', 'icd_ref'],
     });
 
     if (!encounter) {
@@ -161,10 +160,7 @@ export class EncountersService {
     return encounter;
   }
 
-  async update(
-    id: string,
-    dto: UpdateEncounterDto,
-  ): Promise<MedicalEncounter> {
+  async update(id: string, dto: UpdateEncounterDto): Promise<MedicalEncounter> {
     const encounter = await this.encounterRepo.findOne({
       where: { encounter_id: id },
     });
@@ -183,9 +179,7 @@ export class EncountersService {
         .getRawOne();
 
       if (!icdExists) {
-        throw new NotFoundException(
-          `ICD code ${dto.final_icd_code} not found`,
-        );
+        throw new NotFoundException(`ICD code ${dto.final_icd_code} not found`);
       }
     }
 
@@ -197,66 +191,126 @@ export class EncountersService {
     id: string,
     dto: StartConsultationDto,
   ): Promise<MedicalEncounter> {
-    const encounter = await this.encounterRepo.findOne({
-      where: { encounter_id: id },
-    });
+    const queryRunner = this.dataSource.createQueryRunner();
 
-    if (!encounter) {
-      throw new NotFoundException(`Encounter with ID ${id} not found`);
-    }
+    await queryRunner.connect();
 
-    if (encounter.current_status !== EncounterStatus.REGISTERED) {
-      throw new BadRequestException(
-        'Only REGISTERED encounters can start consultation',
+    await queryRunner.startTransaction();
+
+    try {
+      const encounter = await queryRunner.manager.findOne(MedicalEncounter, {
+        where: { encounter_id: id },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!encounter) {
+        throw new NotFoundException(`Encounter with ID ${id} not found`);
+      }
+
+      if (encounter.current_status !== EncounterStatus.REGISTERED) {
+        throw new BadRequestException(
+          'Only REGISTERED encounters can start consultation',
+        );
+      }
+
+      encounter.doctor_id = dto.doctor_id;
+
+      if (dto.assigned_room_id) {
+        encounter.assigned_room_id = dto.assigned_room_id;
+      }
+      encounter.current_status = EncounterStatus.IN_CONSULTATION;
+
+      const savedEncounter = await queryRunner.manager.save(encounter);
+
+      // Ticket queue
+      await queryRunner.manager.update(
+        QueueTicket,
+        { encounter_id: savedEncounter.encounter_id },
+        { status: QueueStatus.IN_PROGRESS },
       );
-    }
 
-    encounter.doctor_id = dto.doctor_id;
-    if (dto.assigned_room_id) {
-      encounter.assigned_room_id = dto.assigned_room_id;
-    }
-    encounter.current_status = EncounterStatus.IN_CONSULTATION;
+      await queryRunner.commitTransaction();
 
-    return await this.encounterRepo.save(encounter);
+      const fullEncounter = await this.findOne(savedEncounter.encounter_id);
+
+      return fullEncounter;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async completeConsultation(
     id: string,
     dto: CompleteConsultationDto,
   ): Promise<MedicalEncounter> {
-    const encounter = await this.encounterRepo.findOne({
-      where: { encounter_id: id },
-    });
+    const queryRunner = this.dataSource.createQueryRunner();
 
-    if (!encounter) {
-      throw new NotFoundException(`Encounter with ID ${id} not found`);
-    }
+    await queryRunner.connect();
 
-    if (encounter.current_status !== EncounterStatus.IN_CONSULTATION) {
-      throw new BadRequestException(
-        'Only IN_CONSULTATION encounters can be completed',
+    await queryRunner.startTransaction();
+
+    try {
+      const encounter = await queryRunner.manager.findOne(MedicalEncounter, {
+        where: { encounter_id: id },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!encounter) {
+        throw new NotFoundException(`Encounter with ID ${id} not found`);
+      }
+
+      if (encounter.current_status !== EncounterStatus.IN_CONSULTATION) {
+        throw new BadRequestException(
+          'Only IN_CONSULTATION encounters can be completed',
+        );
+      }
+
+      // Validate ICD code
+
+      const icdExists = await queryRunner.manager
+        .createQueryBuilder()
+        .select('1')
+        .from('ref_icd10', 'icd')
+        .where('icd.icd_code = :code', { code: dto.final_icd_code })
+        .limit(1)
+        .getRawOne();
+
+      if (!icdExists) {
+        throw new NotFoundException(`ICD code ${dto.final_icd_code} not found`);
+      }
+
+      // Update EncounterGateway
+      encounter.final_icd_code = dto.final_icd_code;
+      encounter.doctor_conclusion = dto.doctor_conclusion;
+      encounter.current_status = EncounterStatus.COMPLETED;
+
+      const savedEncounter = await queryRunner.manager.save(encounter);
+
+      // Ticket queue
+      await queryRunner.manager.update(
+        QueueTicket,
+        {
+          encounter_id: savedEncounter.encounter_id,
+        },
+        {
+          status: QueueStatus.COMPLETED,
+        },
       );
+
+      await queryRunner.commitTransaction();
+
+      const fullEncounter = await this.findOne(savedEncounter.encounter_id);
+
+      return fullEncounter;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    // Validate ICD code
-    const icdExists = await this.dataSource.manager
-      .createQueryBuilder()
-      .select('1')
-      .from('ref_icd10', 'icd')
-      .where('icd.icd_code = :code', { code: dto.final_icd_code })
-      .getRawOne();
-
-    if (!icdExists) {
-      throw new NotFoundException(
-        `ICD code ${dto.final_icd_code} not found`,
-      );
-    }
-
-    encounter.final_icd_code = dto.final_icd_code;
-    encounter.doctor_conclusion = dto.doctor_conclusion;
-    encounter.current_status = EncounterStatus.COMPLETED;
-
-    return await this.encounterRepo.save(encounter);
   }
 
   async updateStatus(
