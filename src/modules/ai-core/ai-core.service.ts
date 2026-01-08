@@ -100,7 +100,6 @@ export class AiCoreService {
         contentType: file.mimetype,
       });
 
-      console.log('dto.modal_name: ', dto.model_name);
       const params = {
         model_name: dto.model_name,
         confidence_threshold: dto.confidence ?? 0.25,
@@ -193,7 +192,6 @@ export class AiCoreService {
       );
     }
 
-    console.log('statusFilter: ', filterStatus);
     // Status filter
     if (filterStatus) {
       if (filterStatus === 'DONE') {
@@ -248,7 +246,6 @@ export class AiCoreService {
     const totalItems = await query.getCount();
     query.skip((page - 1) * limit).take(limit);
     const rawResults = await query.getMany();
-    console.log('rawResults: ', rawResults);
 
     const mappedData = rawResults.map((item: any) => {
       const anns = item.annotations || [];

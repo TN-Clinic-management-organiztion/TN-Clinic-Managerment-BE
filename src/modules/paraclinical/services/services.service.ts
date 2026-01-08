@@ -107,12 +107,10 @@ export class ServicesService {
 
   async findAllCategories(query: QueryCategoryDto) {
     const { page = 1, limit = 20, parent_id, is_system_root, search } = query;
-    console.log('search all categories: ', search);
     const skip = (page - 1) * limit;
     const qb = this.categoryRepo
       .createQueryBuilder('category')
       .leftJoinAndSelect('category.parent', 'parent');
-    console.log('parent_id: ', parent_id);
     if (parent_id !== undefined) {
       if (parent_id === null) {
         qb.andWhere('category.parent_id IS NULL');

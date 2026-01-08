@@ -84,7 +84,6 @@ export class AiCoreController {
   @ApiQuery({ name: 'search', required: false, type: String })
   async getListResultImages(@Query() query: QueryResultImagesDto) {
     const { page = 1, limit = 10, status, search } = query;
-    console.log('status: ', status);
     return await this.aiCoreService.getListResultImages(
       page,
       limit,
