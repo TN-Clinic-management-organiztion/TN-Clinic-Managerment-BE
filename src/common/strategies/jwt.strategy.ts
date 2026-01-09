@@ -70,8 +70,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       .where('staff.staff_id = :staffId', { staffId: payload.sub })
       .getOne();
 
-    console.log('staff in validate: ', staff);
-
     if (staff) {
       userInfo = {
         ...userInfo,

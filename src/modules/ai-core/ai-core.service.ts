@@ -100,16 +100,18 @@ export class AiCoreService {
         contentType: file.mimetype,
       });
 
-      // Append các parameters khác
-      form.append('model_name', dto.model_name ?? 'yolov12n');
-      form.append('confidence_threshold', String(dto.confidence ?? 0.25));
-      form.append('iou_threshold', String(0.4));
+      const params = {
+        model_name: dto.model_name,
+        confidence_threshold: dto.confidence ?? 0.25,
+        iou_threshold: 0.4,
+      };
 
       // Gửi request với headers từ form-data
       const response = await firstValueFrom(
         this.httpService.post(`${this.aiServiceUrl}/detect/image`, form, {
+          params,
           headers: {
-            ...form.getHeaders(), // form-data tự động set Content-Type boundary
+            ...form.getHeaders(),
           },
           maxBodyLength: Infinity,
           maxContentLength: Infinity,
@@ -190,7 +192,6 @@ export class AiCoreService {
       );
     }
 
-    console.log('statusFilter: ', filterStatus);
     // Status filter
     if (filterStatus) {
       if (filterStatus === 'DONE') {
@@ -245,7 +246,6 @@ export class AiCoreService {
     const totalItems = await query.getCount();
     query.skip((page - 1) * limit).take(limit);
     const rawResults = await query.getMany();
-    console.log('rawResults: ', rawResults);
 
     const mappedData = rawResults.map((item: any) => {
       const anns = item.annotations || [];
@@ -898,8 +898,12 @@ export class AiCoreService {
     const query = this.imageAnnotationRepo
       .createQueryBuilder('ann')
       .leftJoinAndSelect('ann.image', 'img')
-      .where('ann.annotation_source = :source', { source: AnnotationSource.HUMAN })
-      .andWhere('ann.annotation_status = :status', { status: AnnotationStatus.APPROVED });
+      .where('ann.annotation_source = :source', {
+        source: AnnotationSource.HUMAN,
+      })
+      .andWhere('ann.annotation_status = :status', {
+        status: AnnotationStatus.APPROVED,
+      });
 
     if (dto.project_id) {
       // Export by project
@@ -912,7 +916,9 @@ export class AiCoreService {
         .andWhere('pi.project_id = :projectId', { projectId: dto.project_id });
     } else if (dto.image_ids && dto.image_ids.length > 0) {
       // Export by image IDs
-      query.andWhere('ann.image_id IN (:...imageIds)', { imageIds: dto.image_ids });
+      query.andWhere('ann.image_id IN (:...imageIds)', {
+        imageIds: dto.image_ids,
+      });
     }
 
     query.orderBy('ann.image_id', 'ASC');
@@ -941,7 +947,9 @@ export class AiCoreService {
       const fileName = ann.image?.file_name || `image_${ann.image_id}.png`;
       const txtFileName = fileName.replace(/\.(png|jpg|jpeg)$/i, '.txt');
 
-      const boxes = Array.isArray(ann.annotation_data) ? ann.annotation_data : [];
+      const boxes = Array.isArray(ann.annotation_data)
+        ? ann.annotation_data
+        : [];
       const lines: string[] = [];
 
       // Get image dimensions (default 1024x1024 if not available)
@@ -967,14 +975,14 @@ export class AiCoreService {
         const x2 = bbox.x2 || 0;
         const y2 = bbox.y2 || 0;
 
-        const xCenter = ((x1 + x2) / 2) / imgWidth;
-        const yCenter = ((y1 + y2) / 2) / imgHeight;
+        const xCenter = (x1 + x2) / 2 / imgWidth;
+        const yCenter = (y1 + y2) / 2 / imgHeight;
         const width = (x2 - x1) / imgWidth;
         const height = (y2 - y1) / imgHeight;
 
         // Format: class x_center y_center width height
         lines.push(
-          `${classIdx} ${xCenter.toFixed(6)} ${yCenter.toFixed(6)} ${width.toFixed(6)} ${height.toFixed(6)}`
+          `${classIdx} ${xCenter.toFixed(6)} ${yCenter.toFixed(6)} ${width.toFixed(6)} ${height.toFixed(6)}`,
         );
       }
 

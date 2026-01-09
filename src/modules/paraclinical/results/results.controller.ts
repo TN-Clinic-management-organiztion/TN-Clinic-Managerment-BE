@@ -73,7 +73,6 @@ export class ResultsController {
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: CreateResultImageDto,
   ) {
-    console.log('dto upload: ', dto);
     return this.resultsService.uploadImageToCloudinary(file, dto);
   }
 
